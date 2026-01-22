@@ -64,7 +64,7 @@ const KoreanElectionPredictor: React.FC = () => {
       const newData: PredictionState = {};
       rows.forEach(row => {
         // 13번째 컬럼(byElecStr) 추가
-        const [id, name, c1n, c1p, c2n, c2p, p22w, p22p, p18w, p18p, p14w, p14p, byElecStr] = row.split(',').map(s => s.trim());
+        const [id, _name, c1n, c1p, c2n, c2p, p22w, p22p, p18w, p18p, p14w, p14p, byElecStr] = row.split(',').map(s => s.trim());
         
         // "20: dp 장신상; 21: ppp 김철수" 형태 파싱
         const byElections = byElecStr ? byElecStr.split(';').map(item => {
@@ -172,11 +172,9 @@ const KoreanElectionPredictor: React.FC = () => {
 
   return (
     <div className="w-full h-screen flex flex-col bg-gray-50">
-      {/* 상단 헤더: 제목, 전환 버튼, 통계 요약 */}
       <div className="bg-white shadow-md p-4 z-10">
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">2025 지방선거 예측</h1>
         
-        {/* 기초/광역 전환 버튼 */}
         <div className="flex justify-center gap-2 mb-4">
           <button 
             onClick={() => setMapType('metro')} 
@@ -192,8 +190,6 @@ const KoreanElectionPredictor: React.FC = () => {
           </button>
         </div>
 
-        {/* 정당별 요약 통계 */}
-        {/* 정당별 요약 통계 영역 */}
 <div className="flex justify-center gap-4 flex-wrap">
   {PARTIES.filter(party => party.selectable).map(party => (
     <div key={party.id} className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
@@ -207,7 +203,6 @@ const KoreanElectionPredictor: React.FC = () => {
 </div>
       </div>
 
-      {/* 지도 영역 */}
       <div className="flex-1 relative overflow-hidden">
         {!loading && geoData && (
           <MapContainer key={mapType} center={[36.3, 127.8]} zoom={7} className="w-full h-full" zoomControl={false}>
@@ -236,7 +231,6 @@ const KoreanElectionPredictor: React.FC = () => {
           </MapContainer>
         )}
 
-        {/* 툴팁: 후보자 정보 + 과거 3회 결과 */}
         {hoveredRegionId && (
           <div 
           className="fixed bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border border-gray-200 z-[3000] w-72 pointer-events-none transition-transform duration-75"
@@ -276,16 +270,13 @@ const KoreanElectionPredictor: React.FC = () => {
   <div className="grid grid-cols-1 gap-1">
     {predictions[hoveredRegionId].info?.pastResults.map((r, i) => (
       <div key={i} className="flex items-center text-xs border-b border-gray-50 py-1.5">
-        {/* 1. 연도: 고정 너비로 시작점 고정 */}
         <span className="text-gray-400 w-12 flex-shrink-0">{r.year}년</span>
         
-        {/* 2. 당선인: 남은 공간을 차지하며 중앙 정렬 */}
         <span className="font-semibold text-gray-700 flex-1 text-center truncate px-2">
           {r.winner}
         </span>
         
-        {/* 3. 정당 축약어: 가변 너비 뱃지로 수정 */}
-        <div className="w-14 flex justify-end flex-shrink-0"> {/* 전체 너비를 14로 넉넉히 잡아 정렬 유지 */}
+        <div className="w-14 flex justify-end flex-shrink-0"> 
           <span 
             className="inline-block min-w-[24px] px-2 h-6 leading-6 text-center rounded-full font-bold text-white text-[10px] shadow-sm whitespace-nowrap" 
             style={{ backgroundColor: PARTIES.find(p => p.id === r.party)?.color }}
@@ -298,7 +289,6 @@ const KoreanElectionPredictor: React.FC = () => {
   </div>
 </div>
 
-{/* 과거 3회 당선 기록 아래에 추가 */}
 {predictions[hoveredRegionId].info?.byElections && predictions[hoveredRegionId].info!.byElections.length > 0 && (
   <div className="mt-4">
     <p className="text-[10px] uppercase tracking-wider text-amber-500 font-bold mb-2">재보궐 선거 결과</p>
