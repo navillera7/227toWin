@@ -1,7 +1,10 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
+
 
 
 const allowedOrigins = [
@@ -11,7 +14,6 @@ const allowedOrigins = [
 
 
 // 환경 변수 로드 (.env 파일)
-dotenv.config();
 
 const app = express();
 

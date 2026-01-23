@@ -6,7 +6,7 @@ import Poll from './components/poll'; // 파일명이 poll.tsx이므로 소문�
 import EmailVerification from './components/EmailVerification'; // 파일명이 poll.tsx이므로 소문자 확인
 import ResetPassword from './components/ResetPassword'; // 파일명이 poll.tsx이므로 소문자 확인
 
-function App() {
+function App() {    
   return (
     // 1. 반드시 AuthProvider가 최상단에 있어야 합니다.
     <AuthProvider>
@@ -17,6 +17,7 @@ function App() {
           <Route path="/poll" element={<Poll />} />
           <Route path="/verify-email/:token" element={<EmailVerification />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        
         </Routes>
       </BrowserRouter>
     </AuthProvider>
