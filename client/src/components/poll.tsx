@@ -47,7 +47,7 @@ const Poll: React.FC = () => {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/polls.csv`);
+        const response = await fetch('/polls.csv');
         const csvText = await response.text();
         
         Papa.parse(csvText, {

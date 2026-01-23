@@ -197,7 +197,7 @@ const KoreanElectionPredictor: React.FC = () => {
 
   const loadCandidateData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/candidates.csv`);
+      const response = await fetch('/candidates.csv');
       const csvText = await response.text();
       const rows = csvText.split('\n').filter(row => row.trim() !== '').slice(1);
       const newData: PredictionState = {};
@@ -235,7 +235,7 @@ const KoreanElectionPredictor: React.FC = () => {
     setLoading(true);
     loadCandidateData();
     const fileName = mapType === 'metro' ? 'metro_fixed.json' : 'local_fixed.json';
-    fetch(`${API_BASE_URL}/${fileName}`)
+    fetch(`/${fileName}`)
       .then(res => res.json())
       .then(data => {
         setGeoData(data);
