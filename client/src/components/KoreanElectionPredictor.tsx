@@ -5,6 +5,9 @@ import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // AuthContext 연동
 
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 // --- 기존 상수 및 타입 정의 유지 ---
 const SIDO_MAP: { [key: string]: string } = {
   '11': '서울특별시', '26': '부산광역시', '27': '대구광역시', '28': '인천광역시',
@@ -77,7 +80,7 @@ const KoreanElectionPredictor: React.FC = () => {
     const fetchSavedData = async () => {
       if (!isAuthenticated || !token || loading) return; // 로딩 중이거나 미인증 시 중단
       try {
-        const res = await fetch(`/api/predict/my`, {
+        const res = await fetch(`${API_BASE_URL}/api/predict/my`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -106,7 +109,7 @@ const KoreanElectionPredictor: React.FC = () => {
       
       setIsStatsLoading(true);
       try {
-        const res = await fetch(`/api/predict/stats/${mapType}/${hoveredRegionId}`);
+        const res = await fetch(`${API_BASE_URL}/api/predict/stats/${mapType}/${hoveredRegionId}`);
         if (res.ok) {
           const data = await res.json();
           // 정렬: 예측 인원 많은 순서대로
@@ -162,7 +165,7 @@ const KoreanElectionPredictor: React.FC = () => {
     }
 
     try {
-      const res = await fetch('/api/predict/submit', {
+      const res = await fetch(`${API_BASE_URL}/api/predict/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +197,7 @@ const KoreanElectionPredictor: React.FC = () => {
 
   const loadCandidateData = async () => {
     try {
-      const response = await fetch('/candidates.csv');
+      const response = await fetch(`${API_BASE_URL}/candidates.csv`);
       const csvText = await response.text();
       const rows = csvText.split('\n').filter(row => row.trim() !== '').slice(1);
       const newData: PredictionState = {};
@@ -232,7 +235,7 @@ const KoreanElectionPredictor: React.FC = () => {
     setLoading(true);
     loadCandidateData();
     const fileName = mapType === 'metro' ? 'metro_fixed.json' : 'local_fixed.json';
-    fetch(`/${fileName}`)
+    fetch(`${API_BASE_URL}/${fileName}`)
       .then(res => res.json())
       .then(data => {
         setGeoData(data);

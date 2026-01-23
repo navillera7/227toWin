@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -12,7 +13,7 @@ const ResetPassword = () => {
     if (password !== confirm) return alert("비밀번호가 일치하지 않습니다.");
 
     try {
-      const res = await fetch(`/api/auth/reset-password/${token}`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })

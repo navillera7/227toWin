@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 const EmailVerification = () => {
   const { token } = useParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -13,7 +13,7 @@ const EmailVerification = () => {
 
     const verify = async () => {
       try {
-        const res = await fetch(`/api/auth/verify-email/${token}`);
+        const res = await fetch(`${API_BASE_URL}/api/auth/verify-email/${token}`);
         if (res.ok) {
           setStatus('success');
         } else {

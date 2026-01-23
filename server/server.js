@@ -9,7 +9,11 @@ dotenv.config();
 const app = express();
 
 // 미들웨어 설정
-app.use(cors()); // 프론트엔드 서버의 접근 허용
+app.use(cors({
+  origin: ['https://227toWin.vercel.app'], // 본인의 Vercel 배포 주소를 넣으세요
+  credentials: true
+}));
+
 app.use(express.json()); // JSON 요청 본문 파싱
 
 // MongoDB 연결

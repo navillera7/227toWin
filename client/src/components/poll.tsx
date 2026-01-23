@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Search, Info, Calendar, Users, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface PollData {
   poll_id: string;
@@ -46,7 +47,7 @@ const Poll: React.FC = () => {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const response = await fetch('/polls.csv');
+        const response = await fetch(`${API_BASE_URL}/polls.csv`);
         const csvText = await response.text();
         
         Papa.parse(csvText, {
