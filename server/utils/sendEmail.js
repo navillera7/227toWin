@@ -1,34 +1,21 @@
-const nodemailer = require('nodemailer');
+// server/utils/sendEmail.js
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465, // SSL 보안 포트 사용
-    secure: true, // 465 포트는 반드시 true
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS.replace(/\s+/g, ''), // 혹시 모를 공백 제거
-    },
-    // 연결 시도 시간 제한 설정 (Render 환경 최적화)
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-  });
-
-  const mailOptions = {
-    from: `"227to-win" <${process.env.EMAIL_USER}>`,
-    to: options.email,
-    subject: options.subject,
-    html: options.html,
-  };
-
-  // 발송 성공 여부를 명확히 로그로 확인
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("📧 이메일 발송 성공:", info.messageId);
-    return info;
+    const data = await resend.emails.send({
+      from: 'onboarding@resend.dev', // 도메인 인증 전에는 이 주소를 사용해야 합니다.
+      to: options.email,
+      subject: options.subject,
+      html: options.html,
+    });
+
+    console.log("📧 Resend를 통한 이메일 발송 성공:", data.id);
+    return data;
   } catch (error) {
-    console.error("❌ nodemailer 실제 에러 상세:", error);
+    console.error("❌ Resend 발송 실패:", error);
     throw error;
   }
 };
