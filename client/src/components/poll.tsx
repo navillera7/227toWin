@@ -3,7 +3,6 @@ import Papa from 'papaparse';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Search, Info, Calendar, Users, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface PollData {
   poll_id: string;

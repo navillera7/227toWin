@@ -3,6 +3,13 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+
+const allowedOrigins = [
+  'https://227to-win.vercel.app', // 본인의 Vercel 주소
+  'http://localhost:5173'         // 로컬 테스트용
+];
+
+
 // 환경 변수 로드 (.env 파일)
 dotenv.config();
 
@@ -10,9 +17,20 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors({
-  origin: ['227to-win-git-main-sunwoo-chois-projects.vercel.app'], // 본인의 Vercel 배포 주소를 넣으세요
-  credentials: true
-}));
+  origin: function (origin, callback) {
+    // origin이 없거나(로컬 툴 등) allowedOrigins에 포함된 경우 허용
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
+    }
+  },
+  credentials: true, // 쿠키나 인증 헤더 허용 시 필수
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));als: true
+
+app.options('*', cors());
 
 app.use(express.json()); // JSON 요청 본문 파싱
 
