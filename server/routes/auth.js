@@ -8,10 +8,10 @@ const sendEmail = require('../utils/sendEmail');
 
 // 1. 회원가입 (중복 체크 + 이메일 인증 발송)
 router.post('/register', async (req, res) => {
+  let newUser;
   try {
     const { email, password } = req.body;
 
-    // 1. 이미 존재하는 이메일인지 체크
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: '이미 가입된 이메일입니다.' });
@@ -20,31 +20,35 @@ router.post('/register', async (req, res) => {
     const verificationToken = crypto.randomBytes(20).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = new User({
+    newUser = new User({
       email,
       password: hashedPassword,
       verificationToken,
       isVerified: false
     });
 
-    // 2. 저장 시 발생하는 에러를 명시적으로 처리
-    await user.save();
+    await newUser.save(); // 1. 우선 유저 저장
 
-    const verifyUrl = `http://localhost:5173/verify-email/${verificationToken}`;
-    await sendEmail({
-      email: user.email,
-      subject: '[선거 예측 지도] 이메일 인증을 완료해주세요',
-      html: `<h3>환영합니다!</h3><p>아래 버튼을 눌러 인증을 완료하세요:</p><a href="${verifyUrl}" style="padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">이메일 인증하기</a>`
-    });
-
-    res.status(201).json({ message: '인증 메일이 발송되었습니다.' });
-  } catch (err) {
-    // MongoDB 중복 키 에러(E11000) 처리
-    if (err.code === 11000) {
-      return res.status(400).json({ message: '이미 가입된 이메일입니다.' });
+    // 2. 이메일 발송 시도
+    try {
+      const verifyUrl = `https://227to-win.vercel.app/verify-email/${verificationToken}`;
+      await sendEmail({
+        email: newUser.email,
+        subject: '[227to-win] 회원가입 인증 메일입니다',
+        html: `<p>아래 링크를 클릭하여 가입을 완료하세요:</p><a href="${verifyUrl}">${verifyUrl}</a>`
+      });
+      
+      res.status(201).json({ message: '인증 메일이 발송되었습니다.' });
+    } catch (emailError) {
+      // ⚠️ 이메일 발송 실패 시, 방금 저장한 유저를 다시 삭제 (중요!)
+      await User.findByIdAndDelete(newUser._id);
+      console.log("🧹 이메일 발송 실패로 생성된 유저 데이터 삭제됨");
+      return res.status(500).json({ message: '메일 서버 연결 실패. 다시 시도해주세요.' });
     }
-    console.error("회원가입 처리 중 치명적 에러:", err);
-    res.status(500).json({ message: '서버 내부 오류가 발생했습니다.' });
+
+  } catch (err) {
+    console.error("서버 내부 에러:", err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 });
 
