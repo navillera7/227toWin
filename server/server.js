@@ -10,7 +10,7 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors({
-  origin: ['https://227toWin.vercel.app'], // 본인의 Vercel 배포 주소를 넣으세요
+  origin: ['227to-win-git-main-sunwoo-chois-projects.vercel.app'], // 본인의 Vercel 배포 주소를 넣으세요
   credentials: true
 }));
 
