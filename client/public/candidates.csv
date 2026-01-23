@@ -49,7 +49,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 48270,밀양시,,,,,박일호,ppp,박일호,liberty,박일호,sae,24: ppp 안병구
 48310,거제시,,,,,박종우,ppp,변광용,dp,권민호,sae,25: dp 변광용
 48330,양산시,,,,,나동연,ppp,김일권,dp,나동연,sae,
-48720,의령군,,,,,오태완,mu,이선두,ppp,오영호,mu,21: ppp 오태완
+48720,의령군,,,,,오태완,mu,이선두,liberty,오영호,mu,21: ppp 오태완
 48730,함안군,,,,,조근제,ppp,조근제,liberty,차정섭,sae,
 48740,창녕군,,,,,김부영,ppp,한정우,liberty,김충식,sae,23: mu 성낙인
 48820,고성군,,,,,이상근,ppp,백두현,dp,하학열,sae,15: sae 최평호
@@ -68,7 +68,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 47250,상주시,,,,,강영석,ppp,황천모,liberty,이정백,mu,20: united 강영석
 47280,문경시,,,,,신현국,ppp,고윤환,liberty,고윤환,sae,
 47290,경산시,,,,,조현일,ppp,최현조,liberty,최현조,sae,
-47720,군위군,,,,,김진열,ppp,김영만,liberty,김영만,mu,
+27999,군위군,,,,,김진열,ppp,김영만,liberty,김영만,mu,
 47730,의성군,,,,,김주수,mu,김주수,liberty,김주수,sae,
 47750,청송군,,,,,윤경희,ppp,윤경희,liberty,한동수,mu,
 47760,영양군,,,,,오도창,ppp,오도창,liberty,권영택,sae,
@@ -114,6 +114,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 26500,수영구,,,,,강성태,ppp,강성태,liberty,박현욱,sae,
 26530,사상구,,,,,조병길,ppp,김대근,dp,송숙희,sae,
 26710,기장군,,,,,정종복,ppp,오규석,mu,오규석,mu,
+26200,영도구,,,,,김기재,ppp,김철훈,dp,어윤태,sae,
 11110,종로구,,,,,정문헌,ppp,김영종,dp,김영종,saejungchi,
 11140,중구,,,,,김길성,ppp,서양호,dp,최창식,sae,
 11170,용산구,,,,,박희영,ppp,성장현,dp,성장현,saejungchi,
@@ -135,10 +136,10 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 11560,영등포구,,,,,최호권,ppp,채현일,dp,조길형,saejungchi,
 11590,동작구,,,,,박일하,ppp,이창우,dp,이창우,saejungchi,
 11620,관악구,,,,,박준희,dp,박준희,dp,유종필,saejungchi,
-11650,서초구,,,,,전성수,ppp,조은희,ppp,조은희,sae,
+11650,서초구,,,,,전성수,ppp,조은희,liberty,조은희,sae,
 11680,강남구,,,,,조성명,ppp,정순균,dp,신연희,sae,
 11710,송파구,,,,,서강석,ppp,박성수,dp,박춘희,sae,
-11740,강동구,,,,,이수희,ppp,이정훈,dp,이해식,dp,
+11740,강동구,,,,,이수희,ppp,이정훈,dp,이해식,saejungchi,
 31110,중구,,,,,김영길,ppp,박태완,dp,박성민,sae,
 31140,남구,,,,,서동욱,ppp,김진규,dp,서동욱,sae,21: ppp 서동욱
 31170,동구,,,,,김종훈,pro,정천석,dp,권명호,sae,
@@ -161,26 +162,26 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 46170,나주시,,,,,윤병태,dp,강인규,dp,강인규,saejungchi,
 46230,광양시,,,,,정인화,mu,정현복,mu,정현복,mu,
 46710,담양군,,,,,이병노,dp,최형식,dp,최형식,saejungchi,25: cho 정철원
-46720,곡성군,,,,,이상철,dp,유근기,dp,유근기,dp,24: dp 조상래
-46730,구례군,,,,,김순호,dp,김순호,dp,서기동,dp,
+46720,곡성군,,,,,이상철,dp,유근기,dp,유근기,saejungchi,24: dp 조상래
+46730,구례군,,,,,김순호,dp,김순호,dp,서기동,saejungchi,
 46770,고흥군,,,,,공영민,dp,송귀근,pyung,박병종,saejungchi,
-46780,보성군,,,,,김철우,dp,김철우,dp,이용부,dp,
-46790,화순군,,,,,구복규,dp,구충곤,dp,구충곤,dp,
+46780,보성군,,,,,김철우,dp,김철우,dp,이용부,saejungchi,
+46790,화순군,,,,,구복규,dp,구충곤,dp,구충곤,saejungchi,
 46800,장흥군,,,,,김성,dp,정종순,mu,김성,mu,
-46810,강진군,,,,,강진원,mu,이승옥,dp,강진원,dp,
-46820,해남군,,,,,명현관,dp,명현관,pyung,박철환,dp,
-46830,영암군,,,,,우승희,dp,전동평,dp,전동평,dp,
-46840,무안군,,,,,김산,mu,김산,dp,김철주,dp,
-46860,함평군,,,,,이상익,dp,이윤행,pyung,안병호,dp,20: dp 이상익
+46810,강진군,,,,,강진원,mu,이승옥,dp,강진원,saejungchi,
+46820,해남군,,,,,명현관,dp,명현관,pyung,박철환,saejungchi,
+46830,영암군,,,,,우승희,dp,전동평,dp,전동평,saejungchi,
+46840,무안군,,,,,김산,mu,김산,dp,김철주,saejungchi,
+46860,함평군,,,,,이상익,dp,이윤행,pyung,안병호,saejungchi,20: dp 이상익
 46870,영광군,,,,,강종만,dp,김준성,dp,김준성,mu,24: dp 장세일
 46880,장성군,,,,,김한종,dp,유두석,mu,유두석,mu,
-46890,완도군,,,,,신우철,dp,신우철,dp,신우철,dp,
-46900,진도군,,,,,김희수,mu,이동진,dp,이동진,dp,
+46890,완도군,,,,,신우철,dp,신우철,dp,신우철,saejungchi,
+46900,진도군,,,,,김희수,mu,이동진,dp,이동진,saejungchi,
 46910,신안군,,,,,박우량,dp,박우량,mu,고길호,mu,
 45130,군산시,,,,,강임준,dp,강임준,dp,문동신,saejungchi,
 45140,익산시,,,,,정헌율,dp,정헌율,pyung,박경철,mu,16: people 정헌율
-45180,정읍시,,,,,이학수,dp,유진섭,dp,김생기,dp,
-45190,남원시,,,,,최경식,dp,이환주,dp,이환주,dp,
+45180,정읍시,,,,,이학수,dp,유진섭,dp,김생기,saejungchi,
+45190,남원시,,,,,최경식,dp,이환주,dp,이환주,saejungchi,
 45210,김제시,,,,,정성주,dp,박준배,dp,이건식,mu,
 45710,완주군,,,,,유힅채,dp,박성일,dp,박성일,mu,
 45720,진안군,,,,,전춘성,dp,이항로,dp,이항로,mu,20: dp 전춘성
@@ -201,8 +202,8 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 44760,부여군,,,,,박정현,dp,박정현,dp,이용우,sae,
 44770,서천군,,,,,김기웅,ppp,노박래,liberty,노박래,sae,
 44790,청양군,,,,,김돈곤,dp,김돈곤,dp,이석화,mu,
-44800,홍성군,,,,,이용록,ppp,김석환,ppp,김석환,ppp,
-44810,예산군,,,,,황선봉,ppp,최재구,ppp,최재구,sae,
+44800,홍성군,,,,,이용록,ppp,김석환,liberty,김석환,sae,
+44810,예산군,,,,,황선봉,ppp,최재구,liberty,최재구,sae,
 44825,태안군,,,,,가세로,dp,가세로,dp,한상기,sae,
 43130,충주시,,,,,조길형,ppp,조길형,liberty,조길형,sae,
 43150,제천시,,,,,김창규,ppp,이상천,dp,이근규,saejungchi,
@@ -217,7 +218,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 41110,수원시,,,,,이재준,dp,염태영,dp,염태영,saejungchi,
 41130,성남시,,,,,신상진,ppp,은수미,dp,이재명,saejungchi,
 41170,안양시,,,,,최대호,dp,최대호,dp,이필운,sae,
-41270,안산시,,,,,이민근,sae,윤화섭,dp,제종길,saejungchi,
+41270,안산시,,,,,이민근,ppp,윤화섭,dp,제종길,saejungchi,
 41280,고양시,,,,,이동환,ppp,이재준,dp,최성,saejungchi,
 41460,용인시,,,,,이상일,ppp,백군기,dp,정찬민,sae,
 48120,창원시,,,,,홍남표,ppp,허성무,dp,안상수,sae,
@@ -228,7 +229,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 11,서울특별시,,,,,오세훈,ppp,박원순,dp,박원순,saejungchi,21: ppp 오세훈
 41,경기도,,,,,김동연,dp,이재명,dp,남경필,sae,
 28,인천광역시,,,,,유정복,ppp,박남춘,dp,유정복,sae,
-42,강원특별자치도,,,,,김진태,ppp,최문순,dp,최문순,saejungchi,
+51,강원특별자치도,,,,,김진태,ppp,최문순,dp,최문순,saejungchi,
 45,전북특별자치도,,,,,김관영,dp,송하진,dp,송하진,saejungchi,
 46,전라남도,,,,,김영록,dp,김영록,dp,이낙연,saejungchi,
 29,광주광역시,,,,,강기정,dp,이용섭,dp,윤장현,saejungchi,
@@ -236,7 +237,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 43,충청북도,,,,,김영환,ppp,이시종,dp,이시종,saejungchi,
 36,세종특별자치시,,,,,최민호,ppp,이춘희,dp,이춘희,saejungchi,
 30,대전광역시,,,,,이장우,ppp,허태정,dp,권선택,saejungchi,
-47,경상북도,,,,,이철우,ppp,이철우,ppp,김관용,sae,
+47,경상북도,,,,,이철우,ppp,이철우,liberty,김관용,sae,
 48,경상남도,,,,,박완수,ppp,김경수,dp,홍준표,sae,
 27,대구광역시,,,,,홍준표,ppp,권영진,liberty,권영진,sae,
 31,울산광역시,,,,,김두겸,ppp,송철호,dp,김기현,sae,

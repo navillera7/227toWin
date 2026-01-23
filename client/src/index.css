@@ -1,0 +1,8 @@
+@import "tailwindcss"; /* 이 한 줄이 @tailwind base, components, utilities를 대체합니다 */
+
+/* Leaflet 지도가 깨지지 않도록 높이 설정 */
+#root, body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
