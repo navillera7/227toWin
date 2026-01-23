@@ -93,7 +93,7 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 27230,북구,,,,,배광식,ppp,배광식,liberty,배광식,sae,
 27260,수성구,,,,,김대권,ppp,김대권,liberty,이진훈,sae,
 27290,달서구,,,,,이태훈,ppp,이태훈,liberty,곽대훈,sae,16: sae 이태훈
-27710,달성군,,,,,최재훈,ppp,김문오,liberty,김문오,sae,
+27710,달성군,,,,,최재훈,ppp,김문오,mu,김문오,sae,
 30110,동구,,,,,박희조,ppp,황인호,dp,한현택,saejungchi,
 30140,중구,,,,,김광신,ppp,박용갑,dp,박용갑,saejungchi,24: dp 김제선
 30170,서구,,,,,서철모,ppp,장종태,dp,장종태,saejungchi,
