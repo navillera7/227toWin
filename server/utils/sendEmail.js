@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const sendEmail = async (options) => {
   try {
     const data = await resend.emails.send({
-      from: 'onboarding@resend.dev', // 도메인 인증 전에는 이 주소를 사용해야 합니다.
+      from: 'ver@226towin.com', // 도메인 인증 전에는 이 주소를 사용해야 합니다.
       to: options.email,
       subject: options.subject,
       html: options.html,
