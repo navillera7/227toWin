@@ -7,19 +7,22 @@ const cors = require('cors');
 
 const app = express();
 
-// 1. 허용할 도메인 리스트
 const allowedOrigins = [
-  'https://227to-win.vercel.app', // 본인의 Vercel 주소
-  'http://localhost:5173'         // 로컬 테스트용
+  'https://227to-win.vercel.app', 
+  'https://www.226towin.com',    // 현재 에러가 발생하는 실제 접속 주소 추가
+  'https://226towin.com',        // www 없는 버전도 안전하게 추가
+  'http://localhost:5173'         
 ];
 
 // 2. CORS 미들웨어 설정 (오타 수정 완료)
 app.use(cors({
   origin: function (origin, callback) {
-    // origin이 없거나(로컬 툴 등) allowedOrigins에 포함된 경우 허용
+    // origin이 없거나 allowedOrigins에 포함된 경우 허용
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      // 보안을 위해 로그에 차단된 origin을 출력하면 디버깅이 쉽습니다.
+      console.log("Blocked by CORS:", origin);
       callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
     }
   },
