@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
 
     // 2. 이메일 발송 시도
     try {
-      const verifyUrl = `https://227to-win.vercel.app/verify-email/${verificationToken}`;
+      const verifyUrl = `https://226towin/verify-email/${verificationToken}`;
       await sendEmail({
         email: newUser.email,
         subject: '[227to-win] 회원가입 인증 메일입니다',
