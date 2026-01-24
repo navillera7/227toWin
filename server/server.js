@@ -5,19 +5,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const app = express();
 
-
+// 1. 허용할 도메인 리스트
 const allowedOrigins = [
   'https://227to-win.vercel.app', // 본인의 Vercel 주소
   'http://localhost:5173'         // 로컬 테스트용
 ];
 
-
-// 환경 변수 로드 (.env 파일)
-
-const app = express();
-
-// 미들웨어 설정
+// 2. CORS 미들웨어 설정 (오타 수정 완료)
 app.use(cors({
   origin: function (origin, callback) {
     // origin이 없거나(로컬 툴 등) allowedOrigins에 포함된 경우 허용
@@ -27,11 +23,12 @@ app.use(cors({
       callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
     }
   },
-  credentials: true, // 쿠키나 인증 헤더 허용 시 필수
+  credentials: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));als: true
+}));
 
+// Preflight 요청(OPTIONS)을 모든 경로에서 허용
 app.options('*', cors());
 
 app.use(express.json()); // JSON 요청 본문 파싱
