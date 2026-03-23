@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // AuthContext 연동
-
+import { useAuth } from '../context/AuthContext'; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// --- 기존 상수 및 타입 정의 유지 ---
 const SIDO_MAP: { [key: string]: string } = {
   '11': '서울특별시', '26': '부산광역시', '27': '대구광역시', '28': '인천광역시',
   '29': '광주광역시', '30': '대전광역시', '31': '울산광역시', '36': '세종특별자치시',
@@ -58,16 +56,13 @@ const ZoomControl: React.FC = () => {
 };
 
 const KoreanElectionPredictor: React.FC = () => {
-  // --- Auth 및 네비게이션 추가 ---
   const { token, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  // --- 기존 State 유지 ---
   const [mapType, setMapType] = useState<'metro' | 'local'>('metro');
   const [predictions, setPredictions] = useState<PredictionState>({});
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [isSidebarHover, setIsSidebarHover] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [geoData, setGeoData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,10 +70,14 @@ const KoreanElectionPredictor: React.FC = () => {
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
   const [regionStats, setRegionStats] = useState<any[]>([]);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
-  // 1. 기존 예측 데이터 불러오기 (로그인 상태일 때만)
+
+  // --- 추가된 useRef: 성능 최적화를 위한 툴팁 DOM 및 API 캐시 참조 ---
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const statsCache = useRef<{ [key: string]: any[] }>({});
+
   useEffect(() => {
     const fetchSavedData = async () => {
-      if (!isAuthenticated || !token || loading) return; // 로딩 중이거나 미인증 시 중단
+      if (!isAuthenticated || !token || loading) return; 
       try {
         const res = await fetch(`${API_BASE_URL}/api/predict/my`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -107,13 +106,20 @@ const KoreanElectionPredictor: React.FC = () => {
         return;
       }
       
+      const cacheKey = `${mapType}-${hoveredRegionId}`;
+      if (statsCache.current[cacheKey]) {
+        setRegionStats(statsCache.current[cacheKey]);
+        return;
+      }
+
       setIsStatsLoading(true);
       try {
         const res = await fetch(`${API_BASE_URL}/api/predict/stats/${mapType}/${hoveredRegionId}`);
         if (res.ok) {
           const data = await res.json();
-          // 정렬: 예측 인원 많은 순서대로
-          setRegionStats(data.sort((a: any, b: any) => b.count - a.count));
+          const sortedData = data.sort((a: any, b: any) => b.count - a.count);
+          statsCache.current[cacheKey] = sortedData;
+          setRegionStats(sortedData);
         }
       } catch (err) {
         console.error("통계 로드 실패:", err);
@@ -122,15 +128,15 @@ const KoreanElectionPredictor: React.FC = () => {
       }
     };
   
-    const timer = setTimeout(fetchStats, 100); // 짧은 디바운싱으로 성능 최적화
+    // 디바운스 시간 연장 (100ms -> 300ms)
+    const timer = setTimeout(fetchStats, 300); 
     return () => clearTimeout(timer);
   }, [hoveredRegionId, mapType]);
-  // 2. 예측 제출 핸들러 추가
+
   const handleReset = () => {
     if (window.confirm("모든 지역의 예측을 초기화하시겠습니까?")) {
       setPredictions(prev => {
         const resetData = { ...prev };
-        // 모든 키값을 순회하며 prediction을 'undecided'로 변경
         Object.keys(resetData).forEach(id => {
           resetData[id] = { ...resetData[id], prediction: 'undecided' };
         });
@@ -138,6 +144,7 @@ const KoreanElectionPredictor: React.FC = () => {
       });
     }
   };
+
   const handleSubmit = async () => {
     if (!isAuthenticated) {
       alert("제출하려면 먼저 로그인해야 합니다.");
@@ -145,11 +152,9 @@ const KoreanElectionPredictor: React.FC = () => {
       return;
     }
 
-
     const featureIds = geoData.features.map((f: any) => String(f.properties.id));
     const currentPredictions: { [key: string]: string } = {};
 
-    // 검증: 모든 지역 선택 및 유효한 정당 확인
     for (const id of featureIds) {
       const pred = predictions[id]?.prediction || 'undecided';
       if (pred === 'undecided') {
@@ -178,7 +183,6 @@ const KoreanElectionPredictor: React.FC = () => {
     } catch (err) { alert("서버 통신 오류가 발생했습니다."); }
   };
 
-  // --- 기존 함수 유지 (applyPastResult, loadCandidateData 등) ---
   const applyPastResult = (year: string) => {
     setPredictions(prev => {
       const nextPredictions = { ...prev };
@@ -329,7 +333,24 @@ const KoreanElectionPredictor: React.FC = () => {
                     {groupedRegions[groupKey].map((region) => {
                       const party = PARTIES.find(p => p.id === (predictions[region.id]?.prediction || 'undecided'));
                       return (
-                        <div key={region.id} onClick={() => handleRegionClick(region.id)} onMouseEnter={(e) => { setHoveredRegionId(region.id); setIsSidebarHover(true); setTooltipPosition({ x: 0, y: e.clientY }); }} onMouseLeave={() => { setHoveredRegionId(null); setIsSidebarHover(false); }}
+                        <div 
+                          key={region.id} 
+                          onClick={() => handleRegionClick(region.id)} 
+                          onMouseEnter={(e) => { 
+                            setHoveredRegionId(region.id); 
+                            setIsSidebarHover(true);
+                            setTimeout(() => {
+                              if (tooltipRef.current) {
+                                tooltipRef.current.style.left = '330px';
+                                tooltipRef.current.style.top = `${e.clientY > window.innerHeight * 0.6 ? 'auto' : e.clientY + 10}px`;
+                                tooltipRef.current.style.bottom = `${e.clientY > window.innerHeight * 0.6 ? window.innerHeight - e.clientY + 10 : 'auto'}px`;
+                              }
+                            }, 0);
+                          }} 
+                          onMouseLeave={() => { 
+                            setHoveredRegionId(null); 
+                            setIsSidebarHover(false); 
+                          }}
                           className={`flex items-center justify-between px-6 py-2.5 border-b border-gray-50 cursor-pointer transition-all ${hoveredRegionId === region.id ? 'bg-blue-50/80 border-l-4 border-l-blue-500 pl-5' : 'hover:bg-gray-50 pl-6'}`}
                         >
                           <span className="text-xs font-bold text-gray-600">{region.name}</span>
@@ -348,8 +369,9 @@ const KoreanElectionPredictor: React.FC = () => {
           {!loading && geoData && (
             <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {/* 수정됨: 불필요한 selectedPartyId를 제거하여 맵 리렌더링 방지 */}
               <GeoJSON 
-                key={`${mapType}-${geoData.features.length}-${selectedPartyId}`}
+                key={`${mapType}-${geoData?.features?.length || 0}`} 
                 data={geoData} 
                 style={(f) => ({
                   fillColor: PARTIES.find(p => p.id === (predictions[f?.properties.id]?.prediction || 'undecided'))?.color,
@@ -360,9 +382,29 @@ const KoreanElectionPredictor: React.FC = () => {
                 onEachFeature={(feature, layer) => {
                   layer.on({
                     click: (e) => { L.DomEvent.stopPropagation(e); handleRegionClick(feature.properties.id); },
-                    mouseover: (e) => { setHoveredRegionId(feature.properties.id); setIsSidebarHover(false); setTooltipPosition({ x: e.originalEvent.clientX, y: e.originalEvent.clientY }); },
+                    mouseover: (e) => { 
+                      setHoveredRegionId(feature.properties.id); 
+                      setIsSidebarHover(false); 
+                      setTimeout(() => {
+                        if (tooltipRef.current) {
+                           const x = e.originalEvent.clientX;
+                           const y = e.originalEvent.clientY;
+                           tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - (window.innerWidth > 640 ? 300 : 250)}px` : `${x + 10}px`;
+                           tooltipRef.current.style.top = y > window.innerHeight * 0.6 ? 'auto' : `${y + 10}px`;
+                           tooltipRef.current.style.bottom = y > window.innerHeight * 0.6 ? `${window.innerHeight - y + 10}px` : 'auto';
+                        }
+                      }, 0);
+                    },
                     mouseout: () => setHoveredRegionId(null),
-                    mousemove: (e) => setTooltipPosition({ x: e.originalEvent.clientX, y: e.originalEvent.clientY })
+                    mousemove: (e) => {
+                      if (tooltipRef.current) {
+                        const x = e.originalEvent.clientX;
+                        const y = e.originalEvent.clientY;
+                        tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - (window.innerWidth > 640 ? 300 : 250)}px` : `${x + 10}px`;
+                        tooltipRef.current.style.top = y > window.innerHeight * 0.6 ? 'auto' : `${y + 10}px`;
+                        tooltipRef.current.style.bottom = y > window.innerHeight * 0.6 ? `${window.innerHeight - y + 10}px` : 'auto';
+                      }
+                    }
                   });
                 }} 
               />
@@ -370,14 +412,16 @@ const KoreanElectionPredictor: React.FC = () => {
             </MapContainer>
           )}
 
-          
+          {/* 수정됨: useRef 적용 및 조건부 렌더링 방식 개선 */}
           {hoveredRegionId && (
-            <div className="fixed bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-2xl border border-gray-200 z-[3000] w-60 sm:w-72 pointer-events-none transition-transform duration-75"
-              style={{ left: isSidebarHover ? '330px' : tooltipPosition.x > window.innerWidth * 0.5 ? `${tooltipPosition.x - (window.innerWidth > 640 ? 300 : 250)}px` : `${tooltipPosition.x + 10}px`, top: tooltipPosition.y > window.innerHeight * 0.6 ? 'auto' : `${tooltipPosition.y + 10}px`, bottom: tooltipPosition.y > window.innerHeight * 0.6 ? `${window.innerHeight - tooltipPosition.y + 10}px` : 'auto', }}
+            <div 
+              ref={tooltipRef}
+              className="fixed bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-2xl border border-gray-200 z-[3000] w-60 sm:w-72 pointer-events-none transition-opacity duration-75"
+              style={{ left: '-9999px', top: '-9999px' }}
             >
               <h3 className="font-extrabold text-sm sm:text-lg text-gray-900 border-b pb-1.5 mb-3">
                 {(() => {
-                  const feature = geoData.features.find((f: any) => String(f.properties.id) === String(hoveredRegionId));
+                  const feature = geoData?.features.find((f: any) => String(f.properties.id) === String(hoveredRegionId));
                   if (!feature) return "지역 정보 없음";
                   const regionName = feature.properties.name || feature.properties.SIG_KOR_NM || "";
                   if (mapType === 'local') {
@@ -387,50 +431,52 @@ const KoreanElectionPredictor: React.FC = () => {
                   return regionName;
                 })()}
               </h3>
+              
               <div className="mt-4 pt-4 border-t border-gray-100">
-  <p className="text-[10px] font-extrabold text-blue-600 mb-2 uppercase tracking-tight flex items-center gap-1">
-    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
-    유저 실시간 예측 현황
-  </p>
-  
-  {isStatsLoading ? (
-    <div className="space-y-2 py-2">
-      <div className="h-3 bg-gray-100 animate-pulse rounded-full w-full"></div>
-      <div className="h-3 bg-gray-100 animate-pulse rounded-full w-3/4"></div>
-    </div>
-  ) : regionStats.length > 0 ? (
-    <div className="space-y-2">
-      {regionStats.map((s: any) => {
-        const party = PARTIES.find(p => p.id === s._id);
-        const total = regionStats.reduce((acc, cur) => acc + cur.count, 0);
-        const percentage = Math.round((s.count / total) * 100);
-        
-        return (
-          <div key={s._id} className="flex flex-col gap-0.5">
-            <div className="flex justify-between items-center text-[9px] font-bold">
-              <span className="text-gray-600">{party?.abbr || '기타'}</span>
-              <span className="text-gray-400">{s.count}명 ({percentage}%)</span>
-            </div>
-            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-              <div 
-                className="h-full transition-all duration-700 ease-out" 
-                style={{ 
-                  width: `${percentage}%`, 
-                  backgroundColor: party?.color || '#cbd5e1' 
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
-      <p className="text-[8px] text-gray-400 text-right mt-1 font-medium italic">
-        총 {regionStats.reduce((acc, cur) => acc + cur.count, 0)}명의 유저가 참여함
-      </p>
-    </div>
-  ) : (
-    <p className="text-[9px] text-gray-400 italic py-2 text-center">아직 이 지역의 예측 데이터가 없습니다.</p>
-  )}
-</div>
+                <p className="text-[10px] font-extrabold text-blue-600 mb-2 uppercase tracking-tight flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                  유저 실시간 예측 현황
+                </p>
+                
+                {isStatsLoading ? (
+                  <div className="space-y-2 py-2">
+                    <div className="h-3 bg-gray-100 animate-pulse rounded-full w-full"></div>
+                    <div className="h-3 bg-gray-100 animate-pulse rounded-full w-3/4"></div>
+                  </div>
+                ) : regionStats.length > 0 ? (
+                  <div className="space-y-2">
+                    {regionStats.map((s: any) => {
+                      const party = PARTIES.find(p => p.id === s._id);
+                      const total = regionStats.reduce((acc, cur) => acc + cur.count, 0);
+                      const percentage = Math.round((s.count / total) * 100);
+                      
+                      return (
+                        <div key={s._id} className="flex flex-col gap-0.5">
+                          <div className="flex justify-between items-center text-[9px] font-bold">
+                            <span className="text-gray-600">{party?.abbr || '기타'}</span>
+                            <span className="text-gray-400">{s.count}명 ({percentage}%)</span>
+                          </div>
+                          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                              className="h-full transition-all duration-700 ease-out" 
+                              style={{ 
+                                width: `${percentage}%`, 
+                                backgroundColor: party?.color || '#cbd5e1' 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <p className="text-[8px] text-gray-400 text-right mt-1 font-medium italic">
+                      총 {regionStats.reduce((acc, cur) => acc + cur.count, 0)}명의 유저가 참여함
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[9px] text-gray-400 italic py-2 text-center">아직 이 지역의 예측 데이터가 없습니다.</p>
+                )}
+              </div>
+
               {predictions[hoveredRegionId]?.info ? (
                 <div className="space-y-4">
                   <div>
@@ -506,12 +552,12 @@ const KoreanElectionPredictor: React.FC = () => {
             </div>
           ))}
         </div>
-    <button 
-      onClick={handleReset}
-      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all"
-    >
-      초기화
-    </button>
+        <button 
+          onClick={handleReset}
+          className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all"
+        >
+          초기화
+        </button>
         <button 
           onClick={handleSubmit}
           className="ml-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex-shrink-0"
