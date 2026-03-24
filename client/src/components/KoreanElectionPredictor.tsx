@@ -494,34 +494,35 @@ onMouseLeave={() => {
 
               {predictions[hoveredRegionId]?.info ? (
                 <div className="space-y-4">
+                  
+                  {/* 1. 주요 후보자 영역 (복구됨!) */}
                   <div>
-  <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">과거 3회 당선 기록</p>
-  <div className="space-y-1 mb-3">
-    {predictions[hoveredRegionId].info?.pastResults.map((r, i) => (
-      <div key={i} className="flex items-center text-[11px] sm:text-xs border-b border-gray-50 py-1.5">
-        <span className="text-gray-400 w-8 sm:w-12 flex-shrink-0">{r.year}</span>
-        
-        {/* ✨ 수정된 부분: r.winner에 '/'가 있으면 글씨를 작게, 없으면 원래대로 표시 */}
-        <span className={`font-bold text-gray-700 flex-1 text-center px-2 ${r.winner.includes('/') ? 'text-[9px] leading-tight' : 'text-xs truncate'}`}>
-          {r.winner}
-        </span>
-        
-        <div className="w-10 sm:w-14 flex justify-end">
-          <span className="inline-block min-w-[20px] sm:min-w-[24px] px-1.5 h-5 sm:h-6 leading-5 sm:leading-6 text-center rounded-full font-bold text-white text-[8px] sm:text-[10px] shadow-sm" style={{ backgroundColor: PARTIES.find(p => p.id === r.party)?.color }}>
-            {PARTIES.find(p => p.id === r.party)?.abbr || '?'}
-          </span>
-        </div>
-      </div>
-    ))}
-  </div>
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">주요 후보자</p>
+                    <div className="space-y-1.5">
+                      {[predictions[hoveredRegionId].info?.cand1, predictions[hoveredRegionId].info?.cand2].map((c, i) => (
+                        <div key={i} className="flex justify-between items-center bg-gray-50 p-1.5 sm:p-2 rounded-md border border-gray-100">
+                          <span className="text-xs sm:text-sm font-bold text-gray-700">{c?.name}</span>
+                          <span className="text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full text-white font-bold" style={{backgroundColor: PARTIES.find(p => p.id === c?.party)?.color}}>
+                            {PARTIES.find(p => p.id === c?.party)?.abbr}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* 2. 과거 3회 당선 기록 (통합특별시 예외처리 반영됨) */}
                   <div>
                     <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">과거 3회 당선 기록</p>
                     <div className="space-y-1 mb-3">
                       {predictions[hoveredRegionId].info?.pastResults.map((r, i) => (
                         <div key={i} className="flex items-center text-[11px] sm:text-xs border-b border-gray-50 py-1.5">
                           <span className="text-gray-400 w-8 sm:w-12 flex-shrink-0">{r.year}</span>
-                          <span className="font-bold text-gray-700 flex-1 text-center truncate px-2">{r.winner}</span>
+                          
+                          {/* 텍스트 길이에 따른 유동적 크기 조절 */}
+                          <span className={`font-bold text-gray-700 flex-1 text-center px-2 ${r.winner.includes('/') ? 'text-[9px] leading-tight' : 'text-xs truncate'}`}>
+                            {r.winner}
+                          </span>
+                          
                           <div className="w-10 sm:w-14 flex justify-end">
                             <span className="inline-block min-w-[20px] sm:min-w-[24px] px-1.5 h-5 sm:h-6 leading-5 sm:leading-6 text-center rounded-full font-bold text-white text-[8px] sm:text-[10px] shadow-sm" style={{ backgroundColor: PARTIES.find(p => p.id === r.party)?.color }}>
                               {PARTIES.find(p => p.id === r.party)?.abbr || '?'}
@@ -530,6 +531,8 @@ onMouseLeave={() => {
                         </div>
                       ))}
                     </div>
+
+                    {/* 3. 재보궐 선거 결과 영역 */}
                     {predictions[hoveredRegionId].info?.byElections && predictions[hoveredRegionId].info!.byElections.length > 0 && (
                       <div>
                         <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-amber-500 font-bold mb-2">재보궐 선거 결과</p>
