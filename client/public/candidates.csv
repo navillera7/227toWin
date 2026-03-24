@@ -81,19 +81,19 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 47920,봉화군,,,,,박현국,ppp,엄태향,mu,박노욱,sae,
 47930,울진군,,,,,손병복,ppp,전찬걸,mu,임광원,sae,
 47940,울릉군,,,,,남한권,mu,김병수,liberty,최수일,sae,
-29110,동구,,,,,임택,dp,임택,dp,노희용,saejungchi,16: people 김성환
-29140,서구,,,,,김이강,dp,서대석,dp,임우진,saejungchi,
-29155,남구,,,,,김병내,dp,김병내,dp,최영호,saejungchi,
-29170,북구,,,,,문인,dp,문인,dp,송광호,saejungchi,
-29200,광산구,,,,,박병규,dp,김삼호,dp,민형배,saejungchi,
-27110,중구,,,,,류규하,ppp,류규하,liberty,윤순영,sae,
-27140,동구,,,,,윤석준,ppp,배기철,liberty,강대식,sae,
-27170,서구,,,,,류한국,ppp,류한국,liberty,류한국,sae,
-27200,남구,,,,,조재구,ppp,조재구,liberty,임병헌,sae,
-27230,북구,,,,,배광식,ppp,배광식,liberty,배광식,sae,
-27260,수성구,,,,,김대권,ppp,김대권,liberty,이진훈,sae,
-27290,달서구,,,,,이태훈,ppp,이태훈,liberty,곽대훈,sae,16: sae 이태훈
-27710,달성군,,,,,최재훈,ppp,김문오,mu,김문오,sae,
+90110,동구,,,,,임택,dp,임택,dp,노희용,saejungchi,16: people 김성환
+90140,서구,,,,,김이강,dp,서대석,dp,임우진,saejungchi,
+90155,남구,,,,,김병내,dp,김병내,dp,최영호,saejungchi,
+90170,북구,,,,,문인,dp,문인,dp,송광호,saejungchi,
+90200,광산구,,,,,박병규,dp,김삼호,dp,민형배,saejungchi,
+90110,중구,,,,,류규하,ppp,류규하,liberty,윤순영,sae,
+90140,동구,,,,,윤석준,ppp,배기철,liberty,강대식,sae,
+90170,서구,,,,,류한국,ppp,류한국,liberty,류한국,sae,
+90200,남구,,,,,조재구,ppp,조재구,liberty,임병헌,sae,
+90230,북구,,,,,배광식,ppp,배광식,liberty,배광식,sae,
+90260,수성구,,,,,김대권,ppp,김대권,liberty,이진훈,sae,
+90290,달서구,,,,,이태훈,ppp,이태훈,liberty,곽대훈,sae,16: sae 이태훈
+90710,달성군,,,,,최재훈,ppp,김문오,mu,김문오,sae,
 30110,동구,,,,,박희조,ppp,황인호,dp,한현택,saejungchi,
 30140,중구,,,,,김광신,ppp,박용갑,dp,박용갑,saejungchi,24: dp 김제선
 30170,서구,,,,,서철모,ppp,장종태,dp,장종태,saejungchi,
@@ -156,28 +156,28 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 282601,서구,,,,,강범석,ppp,이재현,dp,강범석,sae,
 28710,강화군,,,,,유천호,mu,유천호,liberty,이상복,mu,24: ppp 박용철
 28720,옹진군,,,,,문경복,ppp,장정민,dp,조윤길,sae,
-46110,목포시,,,,,박홍률,mu,김종식,dp,박홍률,mu,
-46130,여수시,,,,,정기명,dp,권오봉,mu,주철현,saejungchi,
-46150,순천시,,,,,노관규,mu,허석,dp,조충훈,mu,
-46170,나주시,,,,,윤병태,dp,강인규,dp,강인규,saejungchi,
-46230,광양시,,,,,정인화,mu,정현복,mu,정현복,mu,
-46710,담양군,,,,,이병노,dp,최형식,dp,최형식,saejungchi,25: cho 정철원
-46720,곡성군,,,,,이상철,dp,유근기,dp,유근기,saejungchi,24: dp 조상래
-46730,구례군,,,,,김순호,dp,김순호,dp,서기동,saejungchi,
-46770,고흥군,,,,,공영민,dp,송귀근,pyung,박병종,saejungchi,
-46780,보성군,,,,,김철우,dp,김철우,dp,이용부,saejungchi,
-46790,화순군,,,,,구복규,dp,구충곤,dp,구충곤,saejungchi,
-46800,장흥군,,,,,김성,dp,정종순,mu,김성,mu,
-46810,강진군,,,,,강진원,mu,이승옥,dp,강진원,saejungchi,
-46820,해남군,,,,,명현관,dp,명현관,pyung,박철환,saejungchi,
-46830,영암군,,,,,우승희,dp,전동평,dp,전동평,saejungchi,
-46840,무안군,,,,,김산,mu,김산,dp,김철주,saejungchi,
-46860,함평군,,,,,이상익,dp,이윤행,pyung,안병호,saejungchi,20: dp 이상익
-46870,영광군,,,,,강종만,dp,김준성,dp,김준성,mu,24: dp 장세일
-46880,장성군,,,,,김한종,dp,유두석,mu,유두석,mu,
-46890,완도군,,,,,신우철,dp,신우철,dp,신우철,saejungchi,
-46900,진도군,,,,,김희수,mu,이동진,dp,이동진,saejungchi,
-46910,신안군,,,,,박우량,dp,박우량,mu,고길호,mu,
+90110,목포시,,,,,박홍률,mu,김종식,dp,박홍률,mu,
+90130,여수시,,,,,정기명,dp,권오봉,mu,주철현,saejungchi,
+90150,순천시,,,,,노관규,mu,허석,dp,조충훈,mu,
+90170,나주시,,,,,윤병태,dp,강인규,dp,강인규,saejungchi,
+90230,광양시,,,,,정인화,mu,정현복,mu,정현복,mu,
+90710,담양군,,,,,이병노,dp,최형식,dp,최형식,saejungchi,25: cho 정철원
+90720,곡성군,,,,,이상철,dp,유근기,dp,유근기,saejungchi,24: dp 조상래
+90730,구례군,,,,,김순호,dp,김순호,dp,서기동,saejungchi,
+90770,고흥군,,,,,공영민,dp,송귀근,pyung,박병종,saejungchi,
+90780,보성군,,,,,김철우,dp,김철우,dp,이용부,saejungchi,
+90790,화순군,,,,,구복규,dp,구충곤,dp,구충곤,saejungchi,
+90800,장흥군,,,,,김성,dp,정종순,mu,김성,mu,
+90810,강진군,,,,,강진원,mu,이승옥,dp,강진원,saejungchi,
+90820,해남군,,,,,명현관,dp,명현관,pyung,박철환,saejungchi,
+90830,영암군,,,,,우승희,dp,전동평,dp,전동평,saejungchi,
+90840,무안군,,,,,김산,mu,김산,dp,김철주,saejungchi,
+90860,함평군,,,,,이상익,dp,이윤행,pyung,안병호,saejungchi,20: dp 이상익
+90870,영광군,,,,,강종만,dp,김준성,dp,김준성,mu,24: dp 장세일
+90880,장성군,,,,,김한종,dp,유두석,mu,유두석,mu,
+90890,완도군,,,,,신우철,dp,신우철,dp,신우철,saejungchi,
+90900,진도군,,,,,김희수,mu,이동진,dp,이동진,saejungchi,
+90910,신안군,,,,,박우량,dp,박우량,mu,고길호,mu,
 45130,군산시,,,,,강임준,dp,강임준,dp,문동신,saejungchi,
 45140,익산시,,,,,정헌율,dp,정헌율,pyung,박경철,mu,16: people 정헌율
 45180,정읍시,,,,,이학수,dp,유진섭,dp,김생기,saejungchi,
