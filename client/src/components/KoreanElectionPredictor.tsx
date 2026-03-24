@@ -336,21 +336,24 @@ const KoreanElectionPredictor: React.FC = () => {
                         <div 
                           key={region.id} 
                           onClick={() => handleRegionClick(region.id)} 
-                          onMouseEnter={(e) => { 
-                            setHoveredRegionId(region.id); 
-                            setIsSidebarHover(true);
-                            setTimeout(() => {
-                              if (tooltipRef.current) {
-                                tooltipRef.current.style.left = '330px';
-                                tooltipRef.current.style.top = `${e.clientY > window.innerHeight * 0.6 ? 'auto' : e.clientY + 10}px`;
-                                tooltipRef.current.style.bottom = `${e.clientY > window.innerHeight * 0.6 ? window.innerHeight - e.clientY + 10 : 'auto'}px`;
-                              }
-                            }, 0);
-                          }} 
-                          onMouseLeave={() => { 
-                            setHoveredRegionId(null); 
-                            setIsSidebarHover(false); 
-                          }}
+                          // 변경된 코드 (onMouseMove 추가 및 로직 분리)
+onMouseEnter={() => { 
+  setHoveredRegionId(region.id); 
+  setIsSidebarHover(true);
+}} 
+onMouseMove={(e) => {
+  if (tooltipRef.current) {
+    // 반응형 사이드바 너비(md:w-80=320px, w-72=288px)를 계산하여 툴팁을 우측에 고정
+    const sidebarWidth = window.innerWidth >= 768 ? 320 : 288;
+    tooltipRef.current.style.left = `${sidebarWidth + 16}px`; 
+    tooltipRef.current.style.top = e.clientY > window.innerHeight * 0.6 ? 'auto' : `${e.clientY}px`;
+    tooltipRef.current.style.bottom = e.clientY > window.innerHeight * 0.6 ? `${window.innerHeight - e.clientY}px` : 'auto';
+  }
+}}
+onMouseLeave={() => { 
+  setHoveredRegionId(null); 
+  setIsSidebarHover(false); 
+}}
                           className={`flex items-center justify-between px-6 py-2.5 border-b border-gray-50 cursor-pointer transition-all ${hoveredRegionId === region.id ? 'bg-blue-50/80 border-l-4 border-l-blue-500 pl-5' : 'hover:bg-gray-50 pl-6'}`}
                         >
                           <span className="text-xs font-bold text-gray-600">{region.name}</span>
