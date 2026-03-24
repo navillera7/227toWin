@@ -8,10 +8,9 @@ import { useAuth } from '../context/AuthContext';
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const SIDO_MAP: { [key: string]: string } = {
-  '11': '서울특별시', '26': '부산광역시', '27': '대구광역시', '28': '인천광역시',
-  '29': '광주광역시', '30': '대전광역시', '31': '울산광역시', '36': '세종특별자치시',
+  '11': '서울특별시', '26': '부산광역시', '27': '대구광역시', '28': '인천광역시', '30': '대전광역시', '31': '울산광역시', '36': '세종특별자치시',
   '41': '경기도', '51': '강원특별자치도', '43': '충청북도', '44': '충청남도',
-  '45': '전북특별자치도', '46': '전라남도', '47': '경상북도', '48': '경상남도', '50': '제주특별자치도'
+  '45': '전북특별자치도', '47': '경상북도', '48': '경상남도', '50': '제주특별자치도', '90': '전남광주통합특별시'
 };
 
 const PARTIES = [
@@ -62,12 +61,12 @@ const KoreanElectionPredictor: React.FC = () => {
   const [mapType, setMapType] = useState<'metro' | 'local'>('metro');
   const [predictions, setPredictions] = useState<PredictionState>({});
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
-  const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [geoData, setGeoData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [openSidos, setOpenSidos] = useState<string[]>(['11', '41', '28']);
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
+  const selectedPartyIdRef = useRef<string | null>(null);
   const [regionStats, setRegionStats] = useState<any[]>([]);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
 
@@ -98,6 +97,20 @@ const KoreanElectionPredictor: React.FC = () => {
     };
     fetchSavedData();
   }, [isAuthenticated, token, mapType, loading]);
+  const handleRegionClick = (id: string) => {
+    // state(selectedPartyId) 대신 ref(selectedPartyIdRef.current)를 사용
+    const currentPartyId = selectedPartyIdRef.current;
+    if (!currentPartyId) return;
+    
+    setPredictions(prev => ({
+      ...prev,
+      [id]: { ...prev[id], prediction: currentPartyId }
+    }));
+  };
+
+  useEffect(() => {
+    selectedPartyIdRef.current = selectedPartyId;
+  }, [selectedPartyId]);handleRegionClick
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -132,6 +145,7 @@ const KoreanElectionPredictor: React.FC = () => {
     const timer = setTimeout(fetchStats, 300); 
     return () => clearTimeout(timer);
   }, [hoveredRegionId, mapType]);
+
 
   const handleReset = () => {
     if (window.confirm("모든 지역의 예측을 초기화하시겠습니까?")) {
@@ -238,7 +252,7 @@ const KoreanElectionPredictor: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     loadCandidateData();
-    const fileName = mapType === 'metro' ? 'metro_fixed.json' : 'local_fixed.json';
+    const fileName = mapType === 'metro' ? 'metro_updated.json' : 'local_updated.json';
     fetch(`/${fileName}`)
       .then(res => res.json())
       .then(data => {
@@ -247,13 +261,7 @@ const KoreanElectionPredictor: React.FC = () => {
       });
   }, [mapType]);
 
-  const handleRegionClick = (id: string) => {
-    if (!selectedPartyId) return;
-    setPredictions(prev => ({
-      ...prev,
-      [id]: { ...prev[id], prediction: selectedPartyId }
-    }));
-  };
+  
 
   const getStatistics = () => {
     const stats: { [key: string]: number } = {};
@@ -339,7 +347,6 @@ const KoreanElectionPredictor: React.FC = () => {
                           // 변경된 코드 (onMouseMove 추가 및 로직 분리)
 onMouseEnter={() => { 
   setHoveredRegionId(region.id); 
-  setIsSidebarHover(true);
 }} 
 onMouseMove={(e) => {
   if (tooltipRef.current) {
@@ -352,7 +359,6 @@ onMouseMove={(e) => {
 }}
 onMouseLeave={() => { 
   setHoveredRegionId(null); 
-  setIsSidebarHover(false); 
 }}
                           className={`flex items-center justify-between px-6 py-2.5 border-b border-gray-50 cursor-pointer transition-all ${hoveredRegionId === region.id ? 'bg-blue-50/80 border-l-4 border-l-blue-500 pl-5' : 'hover:bg-gray-50 pl-6'}`}
                         >
@@ -387,7 +393,6 @@ onMouseLeave={() => {
                     click: (e) => { L.DomEvent.stopPropagation(e); handleRegionClick(feature.properties.id); },
                     mouseover: (e) => { 
                       setHoveredRegionId(feature.properties.id); 
-                      setIsSidebarHover(false); 
                       setTimeout(() => {
                         if (tooltipRef.current) {
                            const x = e.originalEvent.clientX;
@@ -483,17 +488,25 @@ onMouseLeave={() => {
               {predictions[hoveredRegionId]?.info ? (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">주요 후보자</p>
-                    <div className="space-y-1.5">
-                      {[predictions[hoveredRegionId].info?.cand1, predictions[hoveredRegionId].info?.cand2].map((c, i) => (
-                        <div key={i} className="flex justify-between items-center bg-gray-50 p-1.5 sm:p-2 rounded-md border border-gray-100">
-                          <span className="text-xs sm:text-sm font-bold text-gray-700">{c?.name}</span>
-                          <span className="text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full text-white font-bold" style={{backgroundColor: PARTIES.find(p => p.id === c?.party)?.color}}>
-                            {PARTIES.find(p => p.id === c?.party)?.abbr}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+  <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">과거 3회 당선 기록</p>
+  <div className="space-y-1 mb-3">
+    {predictions[hoveredRegionId].info?.pastResults.map((r, i) => (
+      <div key={i} className="flex items-center text-[11px] sm:text-xs border-b border-gray-50 py-1.5">
+        <span className="text-gray-400 w-8 sm:w-12 flex-shrink-0">{r.year}</span>
+        
+        {/* ✨ 수정된 부분: r.winner에 '/'가 있으면 글씨를 작게, 없으면 원래대로 표시 */}
+        <span className={`font-bold text-gray-700 flex-1 text-center px-2 ${r.winner.includes('/') ? 'text-[9px] leading-tight' : 'text-xs truncate'}`}>
+          {r.winner}
+        </span>
+        
+        <div className="w-10 sm:w-14 flex justify-end">
+          <span className="inline-block min-w-[20px] sm:min-w-[24px] px-1.5 h-5 sm:h-6 leading-5 sm:leading-6 text-center rounded-full font-bold text-white text-[8px] sm:text-[10px] shadow-sm" style={{ backgroundColor: PARTIES.find(p => p.id === r.party)?.color }}>
+            {PARTIES.find(p => p.id === r.party)?.abbr || '?'}
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
                   </div>
                   <div>
                     <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">과거 3회 당선 기록</p>
