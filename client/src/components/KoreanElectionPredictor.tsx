@@ -375,10 +375,10 @@ onMouseLeave={() => {
         </div>
 
         <div className="flex-1 relative bg-blue-50/20">
+        <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <ZoomControl />
           {!loading && geoData && (
-            <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {/* 수정됨: 불필요한 selectedPartyId를 제거하여 맵 리렌더링 방지 */}
               <GeoJSON 
                 key={`${mapType}-${geoData?.features?.length || 0}`} 
                 data={geoData} 
@@ -416,9 +416,16 @@ onMouseLeave={() => {
                   });
                 }} 
               />
-              <ZoomControl />
-            </MapContainer>
+              
+              
           )}
+          </MapContainer>
+          {loading && (
+    <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-white/50 backdrop-blur-sm">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mr-3"></div>
+      <span className="font-bold text-blue-600">지도 데이터 분석 중...</span>
+    </div>
+  )}
 
           {/* 수정됨: useRef 적용 및 조건부 렌더링 방식 개선 */}
           {hoveredRegionId && (
