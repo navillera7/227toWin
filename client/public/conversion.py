@@ -4,8 +4,6 @@ import os
 
 def process_geojson():
     print("지리 데이터 병합을 시작합니다...")
-
-    # 스크립트 파일이 위치한 현재 폴더의 절대 경로
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
     # ---------------------------------------------------------
@@ -15,16 +13,23 @@ def process_geojson():
     metro_path = os.path.join(base_dir, 'metro_fixed.json')
     metro = gpd.read_file(metro_path)
     
-    # ✨ 핵심 해결책: 도형의 꼬인 부분(TopologyException)을 자동으로 치료합니다.
+    # 도형 오류 사전 방지
     metro['geometry'] = metro['geometry'].buffer(0)
 
     target_ids = ['29', '46']
     to_merge = metro[metro['id'].astype(str).isin(target_ids)]
     others = metro[~metro['id'].astype(str).isin(target_ids)]
     
-    # ✨ 경고 해결: unary_union 대신 최신 명령어인 union_all() 사용
-    merged_geom = to_merge.geometry.union_all()
+    # ✨ 틈새를 메우기 위한 마법의 수치 (위경도 좌표계 기준 약 100~200미터)
+    # 만약 선이 여전히 남아있다면 이 숫자를 0.005 정도로 살짝 키워주세요.
+    tolerance = 0.002 
     
+    # ✨ 팽창 -> 병합 -> 수축 기법 적용
+    merged_geom = to_merge.geometry.buffer(tolerance).union_all().buffer(-tolerance)
+    
+    # 수축 후 혹시 모를 내부 구멍(홀)이나 자투리가 생겼을 경우 부드럽게 한 번 더 정리
+    merged_geom = merged_geom.simplify(0.0001, preserve_topology=True)
+
     new_row = pd.DataFrame([{
         'id': '90',
         'name': '전남광주통합특별시',
