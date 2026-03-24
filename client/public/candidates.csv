@@ -86,14 +86,14 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 90155,남구,,,,,김병내,dp,김병내,dp,최영호,saejungchi,
 90170,북구,,,,,문인,dp,문인,dp,송광호,saejungchi,
 90200,광산구,,,,,박병규,dp,김삼호,dp,민형배,saejungchi,
-90110,중구,,,,,류규하,ppp,류규하,liberty,윤순영,sae,
-90140,동구,,,,,윤석준,ppp,배기철,liberty,강대식,sae,
-90170,서구,,,,,류한국,ppp,류한국,liberty,류한국,sae,
-90200,남구,,,,,조재구,ppp,조재구,liberty,임병헌,sae,
-90230,북구,,,,,배광식,ppp,배광식,liberty,배광식,sae,
-90260,수성구,,,,,김대권,ppp,김대권,liberty,이진훈,sae,
-90290,달서구,,,,,이태훈,ppp,이태훈,liberty,곽대훈,sae,16: sae 이태훈
-90710,달성군,,,,,최재훈,ppp,김문오,mu,김문오,sae,
+27110,중구,,,,,류규하,ppp,류규하,liberty,윤순영,sae,
+27140,동구,,,,,윤석준,ppp,배기철,liberty,강대식,sae,
+27170,서구,,,,,류한국,ppp,류한국,liberty,류한국,sae,
+27200,남구,,,,,조재구,ppp,조재구,liberty,임병헌,sae,
+27230,북구,,,,,배광식,ppp,배광식,liberty,배광식,sae,
+27260,수성구,,,,,김대권,ppp,김대권,liberty,이진훈,sae,
+27290,달서구,,,,,이태훈,ppp,이태훈,liberty,곽대훈,sae,16: sae 이태훈
+27710,달성군,,,,,최재훈,ppp,김문오,mu,김문오,sae,
 30110,동구,,,,,박희조,ppp,황인호,dp,한현택,saejungchi,
 30140,중구,,,,,김광신,ppp,박용갑,dp,박용갑,saejungchi,24: dp 김제선
 30170,서구,,,,,서철모,ppp,장종태,dp,장종태,saejungchi,
