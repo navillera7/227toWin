@@ -53,6 +53,17 @@ const ZoomControl: React.FC = () => {
     </div>
   );
 };
+// ✨ [추가됨] 캡처용 숨겨진 지도 스타일
+const exportMapStyle = {
+  position: 'absolute' as 'absolute',
+  left: '-9999px',
+  top: '-9999px',
+  width: '1000px',
+  height: '1200px',
+  backgroundColor: '#ffffff',
+  zIndex: -1000,
+  overflow: 'hidden'
+};
 
 const KoreanElectionPredictor: React.FC = () => {
   const { token, isAuthenticated, logout } = useAuth();
@@ -75,7 +86,8 @@ const KoreanElectionPredictor: React.FC = () => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const statsCache = useRef<{ [key: string]: any[] }>({});
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const captureRef = useRef<HTMLDivElement>(null);
+// ✨ [수정됨] captureRef 대신 exportMapRef 사용
+  const exportMapRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
@@ -150,41 +162,41 @@ const KoreanElectionPredictor: React.FC = () => {
     return () => clearTimeout(timer);
   }, [hoveredRegionId, mapType]);
   const handleShare = async () => {
-    if (!captureRef.current || isSharing) return;
+    if (!exportMapRef.current || isSharing || !geoData) return;
     
     setIsSharing(true);
     setHoveredRegionId(null); // 캡처 전 툴팁 닫기
     
     try {
-      // ✨ html-to-image의 toBlob 함수 사용 (훨씬 빠르고 에러가 없습니다)
-      const blob = await toBlob(captureRef.current, { 
+      // ✨ 숨겨진 유령 지도(exportMapRef)를 캡처합니다. (cacheBust 추가)
+      const blob = await toBlob(exportMapRef.current, { 
         backgroundColor: '#ffffff',
-        pixelRatio: 2 // 선명도를 위해 2배수 캡처
+        width: 1000,
+        height: 1200,
+        cacheBust: true,
+        pixelRatio: 2
       });
       
       if (!blob) throw new Error("캡처 데이터가 없습니다.");
         
-      const file = new File([blob], '2026-election-prediction.png', { type: 'image/png' });
+      const file = new File([blob], '2026-election-diagram.png', { type: 'image/png' });
       const shareData = {
-        title: '2026 지방선거 예측',
-        text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 예측해보세요.',
+        title: '2026 지방선거 다이어그램',
+        text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 그려보세요.',
         url: 'https://227towin.com',
       };
 
-      // 1. 모바일 환경: Web Share API (이미지 파일 공유 지원 시)
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ ...shareData, files: [file] });
         } catch (err) {
           console.log("유저가 공유를 취소했거나 실패함:", err);
         }
-      } 
-      // 2. PC 환경: 클립보드에 이미지 복사
-      else {
+      } else {
         try {
           const item = new ClipboardItem({ 'image/png': blob });
           await navigator.clipboard.write([item]);
-          alert('📸 지도가 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
+          alert('📸 다이어그램이 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
         } catch (err) {
           alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
         }
@@ -193,7 +205,7 @@ const KoreanElectionPredictor: React.FC = () => {
 
     } catch (error) {
       console.error('캡처 에러:', error);
-      alert('지도 캡처 중 오류가 발생했습니다.');
+      alert('다이어그램 생성 중 오류가 발생했습니다.');
       setIsSharing(false);
     }
   };
@@ -208,7 +220,6 @@ const KoreanElectionPredictor: React.FC = () => {
       });
     }
   };
-
   const handleSubmit = async () => {
     if (!isAuthenticated) {
       alert("제출하려면 먼저 로그인해야 합니다.");
@@ -347,6 +358,32 @@ const KoreanElectionPredictor: React.FC = () => {
 
   return (
     <div className={`w-full h-screen flex flex-col bg-gray-50 overflow-hidden font-sans ${selectedPartyId ? 'cursor-crosshair' : ''}`}>
+      <div ref={exportMapRef} style={exportMapStyle}>
+        {geoData && (
+          <MapContainer 
+            center={[36.0, 127.8]} 
+            zoom={7} 
+            style={{width: '100%', height: '100%'}}
+            zoomControl={false} 
+            dragging={false}
+            doubleClickZoom={false}
+            scrollWheelZoom={false}
+            attributionControl={false}
+          >
+            <GeoJSON 
+              key={`export-${mapType}-${geoData?.features?.length || 0}`}
+              data={geoData} 
+              style={(f: any) => ({
+                fillColor: PARTIES.find(p => p.id === (predictions[f.properties.id]?.prediction || 'undecided'))?.color || '#e0e0e0',
+                weight: 0.8, 
+                opacity: 1,
+                color: '#4B5563', 
+                fillOpacity: 0.9
+              })}
+            />
+          </MapContainer>
+        )}
+      </div>
       <div className="bg-white shadow-sm p-4 z-20 text-center border-b relative">
         <h1 className="text-xl sm:text-2xl font-bold mb-4">2026 지방선거 예측 지도</h1>
         <div className="absolute right-4 top-4 flex gap-2">
@@ -436,7 +473,7 @@ onMouseLeave={() => {
           </div>
         </div>
 
-        <div className="flex-1 relative bg-blue-50/20" ref={captureRef}>
+        <div className="flex-1 relative bg-blue-50/20">
         <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <ZoomControl />
