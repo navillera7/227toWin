@@ -54,17 +54,16 @@ const ZoomControl: React.FC = () => {
   );
 };
 // ✨ [추가됨] 캡처용 숨겨진 지도 스타일
-const exportMapStyle = {
-  position: 'absolute' as 'absolute',
-  left: '-9999px',
-  top: '-9999px',
+const exportMapStyle: React.CSSProperties = {
+  position: 'fixed', 
+  top: '0',
+  left: '0',
   width: '1000px',
   height: '1200px',
   backgroundColor: '#ffffff',
-  zIndex: -1000,
-  overflow: 'hidden'
+  zIndex: -9999, 
+  pointerEvents: 'none'
 };
-
 const KoreanElectionPredictor: React.FC = () => {
   const { token, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -371,6 +370,8 @@ const KoreanElectionPredictor: React.FC = () => {
             doubleClickZoom={false}
             scrollWheelZoom={false}
             attributionControl={false}
+            // ✨ 핵심: SVG 대신 도화지(Canvas)로 렌더링해서 캡처가 100% 성공하게 만듭니다!
+            preferCanvas={true} 
           >
             <GeoJSON 
               key={`export-${mapType}-${geoData?.features?.length || 0}`}
