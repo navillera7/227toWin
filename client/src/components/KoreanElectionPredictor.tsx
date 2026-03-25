@@ -164,10 +164,9 @@ const KoreanElectionPredictor: React.FC = () => {
     if (!exportMapRef.current || isSharing || !geoData) return;
     
     setIsSharing(true);
-    setHoveredRegionId(null); // 캡처 전 툴팁 닫기
+    setHoveredRegionId(null); 
     
     try {
-      // ✨ 숨겨진 유령 지도(exportMapRef)를 캡처합니다. (cacheBust 추가)
       const blob = await toBlob(exportMapRef.current, { 
         backgroundColor: '#ffffff',
         width: 1000,
@@ -181,21 +180,26 @@ const KoreanElectionPredictor: React.FC = () => {
       const file = new File([blob], '2026-election-diagram.png', { type: 'image/png' });
       const shareData = {
         title: '2026 지방선거 다이어그램',
-        text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 그려보세요.',
-        url: 'https://227towin.com',
+        text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 그려보세요.\nhttps://227towin.com',
       };
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      // 📱 스마트폰인지 PC인지 감지하는 코드
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      // 1. 모바일 환경: OS 기본 공유 창 띄우기 (카톡, 인스타 등)
+      if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ ...shareData, files: [file] });
         } catch (err) {
-          console.log("유저가 공유를 취소했거나 실패함:", err);
+          console.log("공유 취소/실패:", err);
         }
-      } else {
+      } 
+      // 2. PC 환경: 공유 창 띄우지 않고 묻지도 따지지도 않고 클립보드 복사
+      else {
         try {
           const item = new ClipboardItem({ 'image/png': blob });
           await navigator.clipboard.write([item]);
-          alert('📸 다이어그램이 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
+          alert('📸 다이어그램 이미지가 클립보드에 복사되었습니다!\n\nPC 카카오톡, 텔레그램 채팅창에 바로 붙여넣기(Ctrl+V) 하세요.\n(지도 우측 하단에 사이트 주소가 함께 포함되어 있습니다.)');
         } catch (err) {
           alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
         }
@@ -360,6 +364,10 @@ const KoreanElectionPredictor: React.FC = () => {
   return (
     <div className={`w-full h-screen flex flex-col bg-gray-50 overflow-hidden font-sans ${selectedPartyId ? 'cursor-crosshair' : ''}`}>
       <div ref={exportMapRef} style={exportMapStyle}>
+      <div style={{ position: 'absolute', bottom: '30px', right: '30px', zIndex: 1000, backgroundColor: 'rgba(255,255,255,0.95)', padding: '12px 20px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '2px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <span style={{ fontSize: '22px', fontWeight: '900', color: '#1F2937', letterSpacing: '-0.5px' }}>2026 지방선거 예측</span>
+          <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#2563EB' }}>227towin.com</span>
+        </div>
         {geoData && (
           <MapContainer 
           // 1. 📍 중심점 미세 조정: 남한 지도가 정중앙에 오도록 위도를 살짝 아래(35.8)로 내립니다.
