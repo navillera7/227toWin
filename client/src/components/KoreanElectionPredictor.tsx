@@ -436,8 +436,7 @@ onMouseLeave={() => {
           </div>
         </div>
 
-        <div className="flex-1 relative bg-blue-50/20">
-        <div className="flex-1 relative bg-blue-50/20" ref={captureRef}></div>
+        <div className="flex-1 relative bg-blue-50/20" ref={captureRef}>
         <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <ZoomControl />
