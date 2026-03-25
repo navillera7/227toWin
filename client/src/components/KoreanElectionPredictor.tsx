@@ -439,8 +439,7 @@ onMouseLeave={() => {
             <div 
               ref={tooltipRef}
               // ✨ 핵심 1: 모바일에서는 터치 가능(auto), 데스크톱은 마우스 통과(none)
-              className="fixed sm:absolute bg-white/95 backdrop-blur-sm p-4 rounded-t-3xl sm:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] sm:shadow-2xl border-t sm:border border-gray-200 z-[4000] w-full sm:w-72 pointer-events-auto sm:pointer-events-none transition-all duration-300 bottom-0 left-0 sm:bottom-auto sm:left-auto"
-              style={window.innerWidth >= 640 ? { left: '-9999px', top: '-9999px' } : {}}
+              className="fixed bg-white/95 backdrop-blur-sm p-4 rounded-t-3xl sm:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] sm:shadow-2xl border-t sm:border border-gray-200 z-[4000] w-full sm:w-72 pointer-events-auto sm:pointer-events-none transition-all duration-300 sm:transition-none bottom-0 left-0 sm:bottom-auto sm:left-auto"              style={window.innerWidth >= 640 ? { left: '-9999px', top: '-9999px' } : {}}
               // ✨ 핵심 2: 바텀 시트 위에서 일어나는 모든 터치가 지도로 뚫고 내려가지 않도록 완벽 차단
               onPointerDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
