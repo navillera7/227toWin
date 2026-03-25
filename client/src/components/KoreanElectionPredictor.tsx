@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
+import html2canvas from 'html2canvas'; // ✨ 추가
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -69,11 +70,14 @@ const KoreanElectionPredictor: React.FC = () => {
   const selectedPartyIdRef = useRef<string | null>(null);
   const [regionStats, setRegionStats] = useState<any[]>([]);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
+  
 
   // --- 추가된 useRef: 성능 최적화를 위한 툴팁 DOM 및 API 캐시 참조 ---
   const tooltipRef = useRef<HTMLDivElement>(null);
   const statsCache = useRef<{ [key: string]: any[] }>({});
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const fetchSavedData = async () => {
@@ -147,7 +151,56 @@ const KoreanElectionPredictor: React.FC = () => {
     return () => clearTimeout(timer);
   }, [hoveredRegionId, mapType]);
 
+  const handleShare = async () => {
+    if (!captureRef.current || isSharing) return;
+    
+    setIsSharing(true);
+    setHoveredRegionId(null);
+    try {
+      // 1. html2canvas로 지도 영역을 캡처 (useCORS: true가 있어야 배경 지도가 깨지지 않음)
+      const canvas = await html2canvas(captureRef.current, { 
+        useCORS: true,
+        scale: 2, // 해상도를 2배로 높여서 선명하게 캡처
+        backgroundColor: '#ffffff'
+      });
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        
+        const file = new File([blob], '2026-election-prediction.png', { type: 'image/png' });
+        const shareData = {
+          title: '2026 지방선거 예측',
+          text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 예측해보세요.',
+          url: 'https://227towin.com',
+        };
 
+        // 2. 모바일 환경: Web Share API (이미지 파일 공유 지원 시)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ ...shareData, files: [file] });
+          } catch (err) {
+            console.log("유저가 공유를 취소했거나 실패함:", err);
+          }
+        } 
+        // 3. PC 환경: 클립보드에 이미지 복사
+        else {
+          try {
+            const item = new ClipboardItem({ 'image/png': blob });
+            await navigator.clipboard.write([item]);
+            alert('📸 지도가 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
+          } catch (err) {
+            alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
+          }
+        }
+        setIsSharing(false);
+      }, 'image/png');
+
+    } catch (error) {
+      console.error('캡처 에러:', error);
+      alert('지도 캡처 중 오류가 발생했습니다.');
+      setIsSharing(false);
+    }
+  };
   const handleReset = () => {
     if (window.confirm("모든 지역의 예측을 초기화하시겠습니까?")) {
       setPredictions(prev => {
@@ -301,6 +354,17 @@ const KoreanElectionPredictor: React.FC = () => {
       <div className="bg-white shadow-sm p-4 z-20 text-center border-b relative">
         <h1 className="text-xl sm:text-2xl font-bold mb-4">2026 지방선거 예측 지도</h1>
         <div className="absolute right-4 top-4 flex gap-2">
+        <button 
+            onClick={handleShare}
+            disabled={isSharing}
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-md hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-70"
+          >
+            {isSharing ? (
+              <span className="animate-pulse">처리중...</span>
+            ) : (
+              <>📸 <span className="hidden sm:inline">예측 공유</span><span className="sm:hidden">공유</span></>
+            )}
+          </button>
           {isAuthenticated ? (
             <button onClick={logout} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-gray-200 transition-all">로그아웃</button>
           ) : (
@@ -324,6 +388,7 @@ const KoreanElectionPredictor: React.FC = () => {
       </div>
 
       <div className="flex-1 flex flex-row overflow-hidden relative">
+        
         <div className="hidden sm:flex w-72 md:w-80 bg-white border-r flex-col z-10 shadow-inner">
           <div className="p-4 border-b bg-gray-50/50">
             <input type="text" placeholder="지역 검색..." className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -376,6 +441,7 @@ onMouseLeave={() => {
         </div>
 
         <div className="flex-1 relative bg-blue-50/20">
+        <div className="flex-1 relative bg-blue-50/20" ref={captureRef}></div>
         <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <ZoomControl />
