@@ -401,29 +401,39 @@ const KoreanElectionPredictor: React.FC = () => {
           </MapContainer>
         )}
       </div>
-      <div className="bg-white shadow-sm p-4 z-20 text-center border-b relative">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4">2026 지방선거 예측 지도</h1>
-        <div className="absolute right-4 top-4 flex gap-2">
-        <button 
-            onClick={handleShare}
-            disabled={isSharing}
-            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-md hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-70"
-          >
-            {isSharing ? (
-              <span className="animate-pulse">처리중...</span>
+      <div className="bg-white shadow-sm p-3 sm:p-4 z-20 border-b flex flex-col gap-3">
+        
+        {/* 상단 1열: 제목 & 우측 버튼들 */}
+        <div className="flex flex-row justify-between items-center gap-2">
+          {/* 모바일에서는 제목 크기를 살짝 줄이고, 공간이 모자라면 '...'으로 생략(truncate)되게 방어 */}
+          <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate flex-shrink">2026 지방선거 예측</h1>
+          
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <button 
+              onClick={handleShare}
+              disabled={isSharing}
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-md hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-70"
+            >
+              {isSharing ? (
+                <span className="animate-pulse">처리중...</span>
+              ) : (
+                <>📸 <span className="hidden sm:inline">예측 공유</span><span className="sm:hidden">공유</span></>
+              )}
+            </button>
+            
+            {isAuthenticated ? (
+              <button onClick={logout} className="px-2 sm:px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg font-bold text-[11px] sm:text-xs hover:bg-gray-200 transition-all">로그아웃</button>
             ) : (
-              <>📸 <span className="hidden sm:inline">예측 공유</span><span className="sm:hidden">공유</span></>
+              <Link to="/login" className="px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-blue-700 transition-all">로그인</Link>
             )}
-          </button>
-          {isAuthenticated ? (
-            <button onClick={logout} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-gray-200 transition-all">로그아웃</button>
-          ) : (
-            <Link to="/login" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition-all">로그인</Link>
-          )}
-          <Link to="/poll" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white border border-blue-100 text-blue-600 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-blue-50 transition-all">
-            📊 <span className="hidden sm:inline">여론조사</span><span className="sm:hidden">조사</span>
-          </Link>
+            
+            <Link to="/poll" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white border border-blue-100 text-blue-600 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-blue-50 transition-all">
+              📊 <span className="hidden sm:inline">여론조사</span><span className="sm:hidden">조사</span>
+            </Link>
+          </div>
         </div>
+
+        {/* 상단 2열: 광역단위 / 기초단위 토글 버튼 (가운데 정렬) */}
         <div className="flex justify-center gap-2">
           <button onClick={() => setMapType('metro')} className={`px-4 py-1.5 rounded-full font-bold text-sm ${mapType === 'metro' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>광역단위</button>
           <button onClick={() => setMapType('local')} className={`px-4 py-1.5 rounded-full font-bold text-sm ${mapType === 'local' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>기초단위</button>
