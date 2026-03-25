@@ -599,7 +599,71 @@ onMouseLeave={() => {
           </button>
         </div>
       </div>
+
+      {/* ✨ 모바일 전용 돋보기 플로팅 버튼 */}
+      <button 
+        onClick={() => setIsMobileSearchOpen(true)}
+        className="sm:hidden fixed bottom-32 right-4 z-[2000] w-14 h-14 bg-blue-600 text-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex items-center justify-center text-xl active:scale-95 transition-transform"
+      >
+        🔍
+      </button>
+
+      {/* ✨ 모바일 지역 검색 모달 (전체화면) */}
+      {isMobileSearchOpen && (
+        <div className="sm:hidden fixed inset-0 z-[5000] bg-white flex flex-col animate-fade-in">
+          <div className="p-4 border-b flex justify-between items-center bg-gray-50 shadow-sm">
+            <input 
+              type="text" 
+              placeholder="검색할 지역을 입력하세요..." 
+              className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-400 outline-none" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+            <button 
+              onClick={() => setIsMobileSearchOpen(false)}
+              className="ml-3 px-3 py-2 text-gray-600 font-bold hover:text-gray-900"
+            >
+              닫기
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-gray-50">
+            {Object.keys(groupedRegions).sort().map(groupKey => (
+              <div key={groupKey} className="border-b border-gray-200 bg-white mb-2 shadow-sm">
+                {mapType === 'local' && (
+                  <div onClick={() => toggleSido(groupKey)} className="flex items-center justify-between px-5 py-4 cursor-pointer active:bg-gray-100">
+                    <span className="text-base font-bold text-gray-800">{SIDO_MAP[groupKey] || '기타'} <span className="ml-2 text-xs text-blue-500">{groupedRegions[groupKey].length}</span></span>
+                    <span className="text-gray-400 text-xs">{openSidos.includes(groupKey) ? '▲ 접기' : '▼ 펴기'}</span>
+                  </div>
+                )}
+                {(mapType === 'metro' || openSidos.includes(groupKey)) && (
+                  <div className="bg-white border-t border-gray-100">
+                    {groupedRegions[groupKey].map((region) => {
+                      const party = PARTIES.find(p => p.id === (predictions[region.id]?.prediction || 'undecided'));
+                      return (
+                        <div 
+                          key={region.id} 
+                          onClick={() => {
+                            handleRegionClick(region.id);
+                            // 지역 클릭 후 모달을 닫아주면 지도로 돌아가서 예측색을 바로 확인할 수 있습니다.
+                            setIsMobileSearchOpen(false); 
+                          }} 
+                          className="flex items-center justify-between px-6 py-3.5 border-b border-gray-50 active:bg-blue-50"
+                        >
+                          <span className="text-sm font-bold text-gray-700">{region.name}</span>
+                          <span className="text-[10px] px-3 py-1 rounded-full text-white font-extrabold shadow-sm" style={{ backgroundColor: party?.color }}>{party?.abbr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+
+    
   );
 };
 
