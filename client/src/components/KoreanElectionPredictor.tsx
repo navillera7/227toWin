@@ -306,8 +306,8 @@ const KoreanElectionPredictor: React.FC = () => {
           ) : (
             <Link to="/login" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition-all">로그인</Link>
           )}
-          <Link to="/poll" className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-100 text-blue-600 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition-all">
-            📊 <span>여론조사</span>
+          <Link to="/poll" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white border border-blue-100 text-blue-600 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-blue-50 transition-all">
+            📊 <span className="hidden sm:inline">여론조사</span><span className="sm:hidden">조사</span>
           </Link>
         </div>
         <div className="flex justify-center gap-2">
@@ -438,27 +438,40 @@ onMouseLeave={() => {
           {hoveredRegionId && (
             <div 
               ref={tooltipRef}
-              className="fixed bg-white/95 backdrop-blur-sm p-3 sm:p-4 rounded-xl shadow-2xl border border-gray-200 z-[3000] w-60 sm:w-72 pointer-events-none transition-opacity duration-75"
-              style={{ left: '-9999px', top: '-9999px' }}
+              // ✨ 핵심 1: 모바일에서는 터치 가능(auto), 데스크톱은 마우스 통과(none)
+              className="fixed sm:absolute bg-white/95 backdrop-blur-sm p-4 rounded-t-3xl sm:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] sm:shadow-2xl border-t sm:border border-gray-200 z-[4000] w-full sm:w-72 pointer-events-auto sm:pointer-events-none transition-all duration-300 bottom-0 left-0 sm:bottom-auto sm:left-auto"
+              style={window.innerWidth >= 640 ? { left: '-9999px', top: '-9999px' } : {}}
+              // ✨ 핵심 2: 바텀 시트 위에서 일어나는 모든 터치가 지도로 뚫고 내려가지 않도록 완벽 차단
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onWheel={(e) => e.stopPropagation()}
             >
-              <h3 className="font-extrabold text-sm sm:text-lg text-gray-900 border-b pb-1.5 mb-3">
-                {(() => {
-                  const feature = geoData?.features.find((f: any) => String(f.properties.id) === String(hoveredRegionId));
-                  if (!feature) return "지역 정보 없음";
-                  const regionName = feature.properties.name || feature.properties.SIG_KOR_NM || "";
-                  if (mapType === 'local') {
-                    const sidoId = String(hoveredRegionId).substring(0, 2);
-                    return `${SIDO_MAP[sidoId] || ""} ${regionName}`;
-                  }
-                  return regionName;
-                })()}
-              </h3>
-              <button 
+              <div className="flex justify-between items-center border-b pb-1.5 mb-3">
+                <h3 className="font-extrabold text-lg text-gray-900">
+                  {(() => {
+                    const feature = geoData?.features.find((f: any) => String(f.properties.id) === String(hoveredRegionId));
+                    if (!feature) return "지역 정보 없음";
+                    const regionName = feature.properties.name || feature.properties.SIG_KOR_NM || "";
+                    if (mapType === 'local') {
+                      const sidoId = String(hoveredRegionId).substring(0, 2);
+                      return `${SIDO_MAP[sidoId] || ""} ${regionName}`;
+                    }
+                    return regionName;
+                  })()}
+                </h3>
+                {/* 닫기 버튼 */}
+                <button 
                   className="sm:hidden w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 font-bold active:bg-gray-200"
-                  onClick={(e) => { e.stopPropagation(); setHoveredRegionId(null); }}
+                  onClick={(e) => { 
+                    e.stopPropagation(); // 버튼 클릭도 지도로 넘어가지 않게 방어
+                    setHoveredRegionId(null); 
+                  }}
                 >
                   ✕
                 </button>
+              </div>
               
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-[10px] font-extrabold text-blue-600 mb-2 uppercase tracking-tight flex items-center gap-1">
