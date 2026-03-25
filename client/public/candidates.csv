@@ -236,9 +236,9 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 43,충청북도,,,,,김영환,ppp,이시종,dp,이시종,saejungchi,
 36,세종특별자치시,,,,,최민호,ppp,이춘희,dp,이춘희,saejungchi,
 30,대전광역시,,,,,이장우,ppp,허태정,dp,권선택,saejungchi,
-47,경상북도,오중기,dp,,,이철우,ppp,이철우,liberty,김관용,sae,
-48,경상남도,김경수,dp,,,박완수,ppp,김경수,dp,홍준표,sae,
-27,대구광역시,김부겸,dp,,,홍준표,ppp,권영진,liberty,권영진,sae,
+47,경상북도,,dp,,,이철우,ppp,이철우,liberty,김관용,sae,
+48,경상남도,,dp,,,박완수,ppp,김경수,dp,홍준표,sae,
+27,대구광역시,,dp,,,홍준표,ppp,권영진,liberty,권영진,sae,
 31,울산광역시,,,,,김두겸,ppp,송철호,dp,김기현,sae,
 50,제주특별자치도,,,,,오영훈,dp,원희룡,mu,원희룡,sae,
 26,부산광역시,,,,,박형준,ppp,오거돈,dp,서병수,sae,21: ppp 박형준
