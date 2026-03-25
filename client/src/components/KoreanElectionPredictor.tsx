@@ -227,7 +227,7 @@ const KoreanElectionPredictor: React.FC = () => {
       return;
     }
 
-    const featureIds = geoData.features.map((f: any) => String(f.properties.id));
+    const featureIds = geoData?.features.map((f: any) => String(f.properties.id)) || [];
     const currentPredictions: { [key: string]: string } = {};
 
     for (const id of featureIds) {
@@ -255,7 +255,9 @@ const KoreanElectionPredictor: React.FC = () => {
       });
       if (res.ok) alert("예측 결과가 성공적으로 저장되었습니다!");
       else alert("저장에 실패했습니다.");
-    } catch (err) { alert("서버 통신 오류가 발생했습니다."); }
+    } catch (err) { 
+      alert("서버 통신 오류가 발생했습니다."); 
+    }
   };
 
   const applyPastResult = (year: string) => {
