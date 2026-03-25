@@ -73,6 +73,7 @@ const KoreanElectionPredictor: React.FC = () => {
   // --- 추가된 useRef: 성능 최적화를 위한 툴팁 DOM 및 API 캐시 참조 ---
   const tooltipRef = useRef<HTMLDivElement>(null);
   const statsCache = useRef<{ [key: string]: any[] }>({});
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     const fetchSavedData = async () => {
@@ -392,23 +393,29 @@ onMouseLeave={() => {
                   layer.on({
                     click: (e) => { L.DomEvent.stopPropagation(e); handleRegionClick(feature.properties.id); },
                     mouseover: (e) => { 
-                      setHoveredRegionId(feature.properties.id); 
-                      setTimeout(() => {
-                        if (tooltipRef.current) {
-                           const x = e.originalEvent.clientX;
-                           const y = e.originalEvent.clientY;
-                           tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - (window.innerWidth > 640 ? 300 : 250)}px` : `${x + 10}px`;
-                           tooltipRef.current.style.top = y > window.innerHeight * 0.6 ? 'auto' : `${y + 10}px`;
-                           tooltipRef.current.style.bottom = y > window.innerHeight * 0.6 ? `${window.innerHeight - y + 10}px` : 'auto';
-                        }
-                      }, 0);
-                    },
+  setHoveredRegionId(feature.properties.id); 
+  setTimeout(() => {
+    if (tooltipRef.current) {
+       if (window.innerWidth >= 640) { // 데스크톱: 마우스 따라다님
+         const x = e.originalEvent.clientX;
+         const y = e.originalEvent.clientY;
+         tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - 300}px` : `${x + 10}px`;
+         tooltipRef.current.style.top = y > window.innerHeight * 0.6 ? 'auto' : `${y + 10}px`;
+         tooltipRef.current.style.bottom = y > window.innerHeight * 0.6 ? `${window.innerHeight - y + 10}px` : 'auto';
+       } else { // 모바일: 하단 고정
+         tooltipRef.current.style.left = '0px';
+         tooltipRef.current.style.top = 'auto';
+         tooltipRef.current.style.bottom = '0px';
+       }
+    }
+  }, 0);
+},
                     mouseout: () => setHoveredRegionId(null),
                     mousemove: (e) => {
-                      if (tooltipRef.current) {
+                      if (tooltipRef.current && window.innerWidth >= 640) { // 데스크톱에서만 작동
                         const x = e.originalEvent.clientX;
                         const y = e.originalEvent.clientY;
-                        tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - (window.innerWidth > 640 ? 300 : 250)}px` : `${x + 10}px`;
+                        tooltipRef.current.style.left = x > window.innerWidth * 0.5 ? `${x - 300}px` : `${x + 10}px`;
                         tooltipRef.current.style.top = y > window.innerHeight * 0.6 ? 'auto' : `${y + 10}px`;
                         tooltipRef.current.style.bottom = y > window.innerHeight * 0.6 ? `${window.innerHeight - y + 10}px` : 'auto';
                       }
@@ -446,6 +453,12 @@ onMouseLeave={() => {
                   return regionName;
                 })()}
               </h3>
+              <button 
+                  className="sm:hidden w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 font-bold active:bg-gray-200"
+                  onClick={(e) => { e.stopPropagation(); setHoveredRegionId(null); }}
+                >
+                  ✕
+                </button>
               
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-[10px] font-extrabold text-blue-600 mb-2 uppercase tracking-tight flex items-center gap-1">
@@ -561,13 +574,14 @@ onMouseLeave={() => {
         </div>
       </div>
 
-      <div className="bg-white border-t p-2 sm:p-3 flex items-center justify-between px-4 sm:px-10">
-        <div className="flex gap-3 sm:gap-6 text-[10px] sm:text-xs font-bold overflow-x-auto whitespace-nowrap scrollbar-hide flex-1 justify-center">
+      <div className="bg-white border-t p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-between px-2 sm:px-10 gap-3">
+        <div className="flex gap-2 sm:gap-6 text-xs sm:text-xs font-bold overflow-x-auto whitespace-nowrap scrollbar-hide w-full sm:flex-1 justify-start sm:justify-center pb-1 sm:pb-0 px-1">
           {PARTIES.filter(p => p.selectable).map(party => (
             <div 
               key={party.id} 
               onClick={() => setSelectedPartyId(prev => prev === party.id ? null : party.id)}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full border cursor-pointer transition-all shadow-sm
+              // py-2.5 px-4 로 변경하여 터치 영역 확보
+              className={`flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1 rounded-full border cursor-pointer transition-all shadow-sm flex-shrink-0
                 ${selectedPartyId === party.id 
                   ? 'bg-white border-blue-500 ring-2 ring-blue-100 scale-105 shadow-md' 
                   : 'bg-gray-100 border-gray-100 hover:bg-gray-200'}`}
@@ -578,18 +592,12 @@ onMouseLeave={() => {
             </div>
           ))}
         </div>
-        <button 
-          onClick={handleReset}
-          className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all"
-        >
-          초기화
-        </button>
-        <button 
-          onClick={handleSubmit}
-          className="ml-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex-shrink-0"
-        >
-          {isAuthenticated ? "예측 제출하기" : "로그인 후 제출"}
-        </button>
+        <div className="flex w-full sm:w-auto justify-end">
+          <button onClick={handleReset} className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 flex-1 sm:flex-none">초기화</button>
+          <button onClick={handleSubmit} className="ml-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700 flex-1 sm:flex-none">
+            {isAuthenticated ? "제출하기" : "로그인"}
+          </button>
+        </div>
       </div>
     </div>
   );
