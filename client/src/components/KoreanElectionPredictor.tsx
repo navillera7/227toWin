@@ -199,7 +199,7 @@ const KoreanElectionPredictor: React.FC = () => {
         try {
           const item = new ClipboardItem({ 'image/png': blob });
           await navigator.clipboard.write([item]);
-          alert('📸 다이어그램 이미지가 클립보드에 복사되었습니다!\n\nPC 카카오톡, 텔레그램 채팅창에 바로 붙여넣기(Ctrl+V) 하세요.\n(지도 우측 하단에 사이트 주소가 함께 포함되어 있습니다.)');
+          alert('📸 다이어그램 이미지가 클립보드에 복사되었습니다!\n\nPC 카카오톡, X 등에 바로 붙여넣기(Ctrl+V) 하세요.\n(지도 우측 하단에 사이트 주소가 함께 포함되어 있습니다.)');
         } catch (err) {
           alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
         }
@@ -364,7 +364,7 @@ const KoreanElectionPredictor: React.FC = () => {
   return (
     <div className={`w-full h-screen flex flex-col bg-gray-50 overflow-hidden font-sans ${selectedPartyId ? 'cursor-crosshair' : ''}`}>
       <div ref={exportMapRef} style={exportMapStyle}>
-      <div style={{ position: 'absolute', bottom: '30px', right: '30px', zIndex: 1000, backgroundColor: 'rgba(255,255,255,0.95)', padding: '12px 20px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '2px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+      <div style={{ position: 'absolute', bottom: '30px', right: '30px', zIndex: 1000, padding: '12px 20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <span style={{ fontSize: '22px', fontWeight: '900', color: '#1F2937', letterSpacing: '-0.5px' }}>2026 지방선거 예측</span>
           <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#2563EB' }}>227towin.com</span>
         </div>
