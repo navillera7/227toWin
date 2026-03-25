@@ -362,17 +362,23 @@ const KoreanElectionPredictor: React.FC = () => {
       <div ref={exportMapRef} style={exportMapStyle}>
         {geoData && (
           <MapContainer 
-            center={[36.0, 127.8]} 
-            zoom={7} 
-            style={{width: '100%', height: '100%'}}
-            zoomControl={false} 
-            dragging={false}
-            doubleClickZoom={false}
-            scrollWheelZoom={false}
-            attributionControl={false}
-            // ✨ 핵심: SVG 대신 도화지(Canvas)로 렌더링해서 캡처가 100% 성공하게 만듭니다!
-            preferCanvas={true} 
-          >
+          // 1. 📍 중심점 미세 조정: 남한 지도가 정중앙에 오도록 위도를 살짝 아래(35.8)로 내립니다.
+          center={[35.8, 127.8]} 
+          
+          // 2. 🔍 확대 레벨 조정: 7은 너무 작고 8은 잘릴 수 있으므로 7.5~7.8 사이로 맞춥니다.
+          zoom={7.6} 
+          
+          // 3. ✨ 핵심 추가: 소수점 단위 줌을 허용하는 마법의 옵션
+          zoomSnap={0.1} 
+          
+          style={{width: '100%', height: '100%'}}
+          zoomControl={false} 
+          dragging={false}
+          doubleClickZoom={false}
+          scrollWheelZoom={false}
+          attributionControl={false}
+          preferCanvas={true}
+        >
             <GeoJSON 
               key={`export-${mapType}-${geoData?.features?.length || 0}`}
               data={geoData} 
@@ -477,24 +483,7 @@ onMouseLeave={() => {
         </div>
 
         <div className="flex-1 relative bg-blue-50/20">
-        <MapContainer 
-  // 1. 📍 중심점 미세 조정: 남한 지도가 정중앙에 오도록 위도를 살짝 아래(35.8)로 내립니다.
-  center={[35.8, 127.8]} 
-  
-  // 2. 🔍 확대 레벨 조정: 7은 너무 작고 8은 잘릴 수 있으므로 7.5~7.8 사이로 맞춥니다.
-  zoom={7.6} 
-  
-  // 3. ✨ 핵심 추가: 소수점 단위 줌을 허용하는 마법의 옵션
-  zoomSnap={0.1} 
-  
-  style={{width: '100%', height: '100%'}}
-  zoomControl={false} 
-  dragging={false}
-  doubleClickZoom={false}
-  scrollWheelZoom={false}
-  attributionControl={false}
-  preferCanvas={true}
->
+        <MapContainer center={[36.3, 127.8]} zoom={7} className="w-full h-full z-0" zoomControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <ZoomControl />
           {!loading && geoData && (
