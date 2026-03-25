@@ -8,10 +8,9 @@ const cors = require('cors');
 const app = express();
 
 const allowedOrigins = [
-  'https://227to-win.vercel.app', 
-  'https://www.226towin.com',    // 현재 에러가 발생하는 실제 접속 주소 추가
-  'https://226towin.com',        // www 없는 버전도 안전하게 추가
-  'http://localhost:5173'         
+       // www 없는 버전도 안전하게 추가
+  'http://localhost:5173',
+  'https://227towin.com'         
 ];
 
 // 2. CORS 미들웨어 설정 (오타 수정 완료)
