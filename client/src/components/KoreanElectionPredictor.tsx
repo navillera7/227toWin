@@ -4,8 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
-import html2canvas from 'html2canvas'; // ✨ 추가
-
+import { toBlob } from 'html-to-image';
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const SIDO_MAP: { [key: string]: string } = {
@@ -150,50 +149,47 @@ const KoreanElectionPredictor: React.FC = () => {
     const timer = setTimeout(fetchStats, 300); 
     return () => clearTimeout(timer);
   }, [hoveredRegionId, mapType]);
-
   const handleShare = async () => {
     if (!captureRef.current || isSharing) return;
     
     setIsSharing(true);
-    setHoveredRegionId(null);
+    setHoveredRegionId(null); // 캡처 전 툴팁 닫기
+    
     try {
-      // 1. html2canvas로 지도 영역을 캡처 (useCORS: true가 있어야 배경 지도가 깨지지 않음)
-      const canvas = await html2canvas(captureRef.current, { 
-        useCORS: true,
-        scale: 2, // 해상도를 2배로 높여서 선명하게 캡처
-        backgroundColor: '#ffffff'
+      // ✨ html-to-image의 toBlob 함수 사용 (훨씬 빠르고 에러가 없습니다)
+      const blob = await toBlob(captureRef.current, { 
+        backgroundColor: '#ffffff',
+        pixelRatio: 2 // 선명도를 위해 2배수 캡처
       });
       
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
+      if (!blob) throw new Error("캡처 데이터가 없습니다.");
         
-        const file = new File([blob], '2026-election-prediction.png', { type: 'image/png' });
-        const shareData = {
-          title: '2026 지방선거 예측',
-          text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 예측해보세요.',
-          url: 'https://227towin.com',
-        };
+      const file = new File([blob], '2026-election-prediction.png', { type: 'image/png' });
+      const shareData = {
+        title: '2026 지방선거 예측',
+        text: '내가 예측한 2026 지방선거 판세! 여러분도 직접 예측해보세요.',
+        url: 'https://227towin.com',
+      };
 
-        // 2. 모바일 환경: Web Share API (이미지 파일 공유 지원 시)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ ...shareData, files: [file] });
-          } catch (err) {
-            console.log("유저가 공유를 취소했거나 실패함:", err);
-          }
-        } 
-        // 3. PC 환경: 클립보드에 이미지 복사
-        else {
-          try {
-            const item = new ClipboardItem({ 'image/png': blob });
-            await navigator.clipboard.write([item]);
-            alert('📸 지도가 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
-          } catch (err) {
-            alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
-          }
+      // 1. 모바일 환경: Web Share API (이미지 파일 공유 지원 시)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ ...shareData, files: [file] });
+        } catch (err) {
+          console.log("유저가 공유를 취소했거나 실패함:", err);
         }
-        setIsSharing(false);
-      }, 'image/png');
+      } 
+      // 2. PC 환경: 클립보드에 이미지 복사
+      else {
+        try {
+          const item = new ClipboardItem({ 'image/png': blob });
+          await navigator.clipboard.write([item]);
+          alert('📸 지도가 클립보드에 복사되었습니다!\n\n트위터, 페이스북, 카카오톡 입력창에 붙여넣기(Ctrl+V) 하시고\nhttps://227towin.com 링크와 함께 공유해보세요!');
+        } catch (err) {
+          alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
+        }
+      }
+      setIsSharing(false);
 
     } catch (error) {
       console.error('캡처 에러:', error);
