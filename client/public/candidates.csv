@@ -226,9 +226,9 @@ id,region_name,cand1_name,cand1_party,cand2_name,cand2_party,past22_winner,past2
 45110,전주시,,,,,우범기,dp,김승수,dp,김승수,saejungchi,
 44130,천안시,,,,,박상돈,ppp,구본영,dp,구본영,saejungchi,20: united 박상돈
 43110,청주시,,,,,이범석,ppp,한범덕,dp,이승훈,sae,
-11,서울특별시,정원오,dp,,,오세훈,ppp,박원순,dp,박원순,saejungchi,21: ppp 오세훈
+11,서울특별시,,dp,,,오세훈,ppp,박원순,dp,박원순,saejungchi,21: ppp 오세훈
 41,경기도,,,,,김동연,dp,이재명,dp,남경필,sae,
-28,인천광역시,,,,,유정복,ppp,박남춘,dp,유정복,sae,
+28,인천광역시,박찬대,,,,유정복,ppp,박남춘,dp,유정복,sae,
 51,강원특별자치도,우상호,dp,,,김진태,ppp,최문순,dp,최문순,saejungchi,
 45,전북특별자치도,,,,,김관영,dp,송하진,dp,송하진,saejungchi,
 46,전라남도,,,,,김영록,dp,김영록,dp,이낙연,saejungchi,
