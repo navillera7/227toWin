@@ -410,7 +410,7 @@ const KoreanElectionPredictor: React.FC = () => {
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <a 
-              href="buymeacoffee.com/227towin" 
+              href="https://www.buymeacoffee.com/227towin" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-[#FFDD00] text-black rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-[#FFEA4C] transition-all hover:-translate-y-0.5"
