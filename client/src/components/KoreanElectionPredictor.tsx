@@ -409,6 +409,14 @@ const KoreanElectionPredictor: React.FC = () => {
           <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate flex-shrink">2026 지방선거 예측</h1>
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <a 
+              href="buymeacoffee.com/227towin" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-[#FFDD00] text-black rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:bg-[#FFEA4C] transition-all hover:-translate-y-0.5"
+            >
+              ☕ <span className="hidden sm:inline">커피 후원</span><span className="sm:hidden">후원</span>
+            </a>
             <button 
               onClick={handleShare}
               disabled={isSharing}
