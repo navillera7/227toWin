@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, useMap, Pane } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const SIDO_MAP: { [key: string]: string } = {
 
 const PARTIES = [
   { id: 'undecided', name: '미정', color: '#e0e0e0', selectable: true, abbr: '미정' },
-  { id: 'dp', name: '더불어민주당', color: '#004ea2', selectable: true, abbr: '민주' },
+  { id: 'dp', name: '더불어민주당', color: '#0073EF', selectable: true, abbr: '민주' },
   { id: 'ppp', name: '국민의힘', color: '#e61e2b', selectable: true, abbr: '국힘' },
   { id: 'reform', name: '개혁신당', color: '#EE7B1E', selectable: true, abbr: '개혁' },
   { id: 'cho', name: '조국혁신당', color: '#06275E', selectable: true, abbr: '혁신' },
@@ -104,6 +104,7 @@ const KoreanElectionPredictor: React.FC = () => {
   const [predictions, setPredictions] = useState<PredictionState>({});
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [geoData, setGeoData] = useState<any>(null);
+  const [metroGeoData, setMetroGeoData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [openSidos, setOpenSidos] = useState<string[]>(['11', '41', '28']);
@@ -193,7 +194,22 @@ const KoreanElectionPredictor: React.FC = () => {
   // ✨ [수정됨] 뉴스 상태 및 슬라이드 인덱스
   const [newsList, setNewsList] = useState<{title: string, link: string, pubDate: string, publisher: string, thumbnail: string}[]>([]);
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
+  const handleSidoFill = (e: React.MouseEvent, sidoId: string) => {
+    e.stopPropagation(); // 클릭 시 아코디언이 접히거나 펴지는 것을 방지
+    
+    const currentPartyId = selectedPartyIdRef.current;
+    if (!currentPartyId) return; // 정당이 선택되지 않았으면 동작 안 함
 
+    setPredictions(prev => {
+      const next = { ...prev };
+      // groupedRegions에서 해당 시/도에 속한 기초단위 배열을 가져와 모두 업데이트
+      const regionsInSido = groupedRegions[sidoId] || [];
+      regionsInSido.forEach(region => {
+        next[region.id] = { ...next[region.id], prediction: currentPartyId };
+      });
+      return next;
+    });
+  };
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -486,6 +502,10 @@ const KoreanElectionPredictor: React.FC = () => {
         console.error("지도 데이터를 불러오는데 실패했습니다:", err);
         setLoading(false); // ✨ 에러가 나도 로딩 스피너를 강제로 꺼서 지도가 뜨게 만듭니다.
       });
+      fetch('/metro_updated.json')
+      .then(res => res.json())
+      .then(data => setMetroGeoData(data))
+      .catch(err => console.error("광역 경계선 로딩 실패:", err));
   }, [mapType]);
 
   const getStatistics = () => {
@@ -556,7 +576,7 @@ const KoreanElectionPredictor: React.FC = () => {
       {/* --- 2. 내보내기 전용 숨겨진 지도 --- */}
       <div ref={exportMapRef} style={exportMapStyle}>
         <div style={{ position: 'absolute', bottom: '30px', right: '30px', zIndex: 1000, padding: '12px 20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '10px' }}>
-          <span style={{ fontSize: '22px', fontWeight: '900', color: '#1F2937', letterSpacing: '-0.5px' }}>2026 지방선거 예측</span>
+          <span style={{ fontSize: '18px', fontWeight: '900', color: '#1F2937', letterSpacing: '-0.5px' }}>2026 지방선거 예측</span>
           <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#2563EB' }}>227towin.com</span>
         </div>
         {geoData && (
@@ -569,6 +589,23 @@ const KoreanElectionPredictor: React.FC = () => {
                 weight: 0.8, opacity: 1, color: '#4B5563', fillOpacity: 0.9
               })}
             />
+
+            {/* ✨ [추가] 캡처 이미지용 광역 경계선 오버레이 */}
+{metroGeoData && (
+  <Pane name="export-metro-borders" style={{ zIndex: 500, pointerEvents: 'none' }}>
+  <GeoJSON 
+    key={`export-metro-overlay-borders-${mapType}`}
+    data={metroGeoData}
+    style={() => ({
+      fillColor: 'transparent',
+      color: '#1e293b', // 굵고 진한 남회색
+      weight: 3,        // 눈에 띄게 두꺼운 선
+      opacity: 0.9,
+      fillOpacity: 0
+    })}
+    interactive={false} // 마우스 이벤트 무시
+  /></Pane>
+)}
           </MapContainer>
         )}
       </div>
@@ -617,11 +654,20 @@ const KoreanElectionPredictor: React.FC = () => {
                 {Object.keys(groupedRegions).sort().map(groupKey => (
                   <div key={groupKey} className="border-b border-gray-100">
                     {mapType === 'local' && (
-                      <div onClick={() => toggleSido(groupKey)} className="flex items-center justify-between px-4 py-3 bg-gray-50/50 cursor-pointer hover:bg-gray-100 transition-colors">
-                        <span className="text-sm font-bold text-gray-700">{SIDO_MAP[groupKey] || '기타'} <span className="ml-2 text-[10px] text-blue-500 font-normal">{groupedRegions[groupKey].length}</span></span>
-                        <span className="text-gray-400 text-[10px]">{openSidos.includes(groupKey) ? '▲' : '▼'}</span>
-                      </div>
-                    )}
+  <div onClick={() => toggleSido(groupKey)} className="flex items-center justify-between px-4 py-3 bg-gray-50/50 cursor-pointer hover:bg-gray-100 transition-colors">
+    <div className="flex items-center">
+      <span className="text-sm font-bold text-gray-700">{SIDO_MAP[groupKey] || '기타'} <span className="ml-2 text-[10px] text-blue-500 font-normal">{groupedRegions[groupKey].length}</span></span>
+      {/* ✨ 일괄 색칠 버튼 추가 */}
+      <button 
+        onClick={(e) => handleSidoFill(e, groupKey)}
+        className="ml-3 px-2 py-1 bg-white border border-gray-200 rounded-md text-[10px] font-bold text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-colors shadow-sm"
+      >
+        일괄 색칠
+      </button>
+    </div>
+    <span className="text-gray-400 text-[10px]">{openSidos.includes(groupKey) ? '▲' : '▼'}</span>
+  </div>
+)}
                     {(mapType === 'metro' || openSidos.includes(groupKey)) && (
                       <div className="bg-white">
                         {groupedRegions[groupKey].map((region) => {
@@ -676,7 +722,7 @@ const KoreanElectionPredictor: React.FC = () => {
                       fillColor: PARTIES.find(p => p.id === (predictions[f?.properties.id]?.prediction || 'undecided'))?.color,
                       weight: 1, 
                       color: hoveredRegionId === f?.properties.id ? '#000' : '#888',
-                      fillOpacity: hoveredRegionId === f?.properties.id ? 0.8 : 0.6
+                      fillOpacity: hoveredRegionId === f?.properties.id ? 1.0 : 0.9
                     })}
                     onEachFeature={(feature, layer) => {
                       layer.on({
@@ -712,7 +758,25 @@ const KoreanElectionPredictor: React.FC = () => {
                       });
                     }} 
                   />
+                  
+                  
                 )}
+                {/* ✨ [추가] 화면용 광역 경계선 오버레이 */}
+{metroGeoData && (
+  <Pane name="metro-borders" style={{ zIndex: 500, pointerEvents: 'none' }}>
+  <GeoJSON 
+  key={`metro-overlay-borders-${mapType}`}
+    data={metroGeoData}
+    style={() => ({
+      fillColor: 'transparent', // 내부는 완전히 투명하게
+      color: '#1e293b',         // 선 색상은 진하게
+      weight: 2.5,              // 경계선 두께
+      opacity: 0.8,
+      fillOpacity: 0
+    })}
+    interactive={false} // 아래 레이어(기초단체)의 클릭 이벤트를 통과시킴
+  /></Pane>
+)}
               </MapContainer>
 
               {loading && (
@@ -983,11 +1047,20 @@ const KoreanElectionPredictor: React.FC = () => {
             {Object.keys(groupedRegions).sort().map(groupKey => (
               <div key={groupKey} className="border-b border-gray-200 bg-white mb-2 shadow-sm">
                 {mapType === 'local' && (
-                  <div onClick={() => toggleSido(groupKey)} className="flex items-center justify-between px-5 py-4 cursor-pointer active:bg-gray-100">
-                    <span className="text-base font-bold text-gray-800">{SIDO_MAP[groupKey] || '기타'} <span className="ml-2 text-xs text-blue-500">{groupedRegions[groupKey].length}</span></span>
-                    <span className="text-gray-400 text-xs">{openSidos.includes(groupKey) ? '▲ 접기' : '▼ 펴기'}</span>
-                  </div>
-                )}
+  <div onClick={() => toggleSido(groupKey)} className="flex items-center justify-between px-5 py-4 cursor-pointer active:bg-gray-100">
+    <div className="flex items-center">
+      <span className="text-base font-bold text-gray-800">{SIDO_MAP[groupKey] || '기타'} <span className="ml-2 text-xs text-blue-500">{groupedRegions[groupKey].length}</span></span>
+      {/* ✨ 일괄 색칠 버튼 추가 (모바일에 맞게 약간 더 크게 설정) */}
+      <button 
+        onClick={(e) => handleSidoFill(e, groupKey)}
+        className="ml-3 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors shadow-sm"
+      >
+        일괄 색칠
+      </button>
+    </div>
+    <span className="text-gray-400 text-xs">{openSidos.includes(groupKey) ? '▲ 접기' : '▼ 펴기'}</span>
+  </div>
+)}
                 {(mapType === 'metro' || openSidos.includes(groupKey)) && (
                   <div className="bg-white border-t border-gray-100">
                     {groupedRegions[groupKey].map((region) => {
