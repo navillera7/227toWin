@@ -21,7 +21,7 @@ const PARTIES = [
   { id: 'reform', name: '개혁신당', color: '#EE7B1E', selectable: true, abbr: '개혁' },
   { id: 'cho', name: '조국혁신당', color: '#06275E', selectable: true, abbr: '혁신' },
   { id: 'pro', name: '진보당', color: '#8000FF', selectable: true, abbr: '진보' },
-  { id: 'mu', name: '무소속', color: '#000000', selectable: true, abbr: '무' },
+  { id: 'mu', name: '무소속', color: '#495057', selectable: true, abbr: '무' },
   { id: 'liberty', name: '자유한국당', color: '#C9151E', selectable: false, abbr: '한국' },
   { id: 'sae', name: '새누리당', color: '#C9252B', selectable: false, abbr: '새누리' },
   { id: 'saejungchi', name: '새정치민주연합', color: '#0082CD', selectable: false, abbr: '새정연' },
