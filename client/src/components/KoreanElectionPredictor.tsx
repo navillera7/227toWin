@@ -947,9 +947,12 @@ const KoreanElectionPredictor: React.FC = () => {
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h3 className="font-black text-xl text-gray-800 tracking-tight">227toWin</h3>
             <p className="text-sm font-medium mt-1 text-gray-500">Interactive Election Data & Geospatial Visualization</p>
+            <p className="text-sm text-gray-400 mt-1">Created by dorudomu</p>
+            <p className="text-sm text-gray-400 mt-1">Special Thanks for PikiBye & Mede & Rheinland and my bro</p>
             <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full shadow-sm">
               <MapPin size={12} className="text-blue-500" />
               <span>Ottawa, ON, Canada</span>
+
             </div>
           </div>
           <div className="flex items-center gap-3">
