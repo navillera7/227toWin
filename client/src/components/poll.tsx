@@ -288,8 +288,16 @@ const Poll: React.FC = () => {
           fetch('/polls.csv')
         ]);
 
-        const candText = await candResponse.text();
-        const pollText = await pollResponse.text();
+        let candText = await candResponse.text();
+        let pollText = await pollResponse.text();
+
+        // 💡 utf-8-sig로 인해 생성된 BOM(\ufeff) 찌꺼기 제거
+        if (pollText.charCodeAt(0) === 0xFEFF) {
+          pollText = pollText.slice(1);
+        }
+        if (candText.charCodeAt(0) === 0xFEFF) {
+          candText = candText.slice(1);
+        }
 
         Papa.parse(candText, {
           header: true,

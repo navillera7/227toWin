@@ -129,7 +129,12 @@ const KoreanElectionPredictor: React.FC = () => {
       try {
         const res = await fetch('/polls.csv');
         if (!res.ok) throw new Error("CSV 파일 없음");
-        const csvText = await res.text();
+        let csvText = await res.text();
+
+        // 💡 utf-8-sig BOM 제거
+        if (csvText.charCodeAt(0) === 0xFEFF) {
+          csvText = csvText.slice(1);
+        }
         
         Papa.parse(csvText, {
           header: true,
