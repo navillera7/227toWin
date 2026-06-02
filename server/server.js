@@ -54,6 +54,11 @@ app.get('/', (req, res) => {
 
 // 서버 실행
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(5000, () => {
+    console.log('🚀 서버가 포트 5000에서 실행 중입니다.');
+  });
+}
+
+// Vercel이 백엔드를 인식할 수 있도록 반드시 추가해야 하는 한 줄!
+module.exports = app;
