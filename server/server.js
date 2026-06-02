@@ -31,8 +31,7 @@ app.use(cors({
 }));
 
 // Preflight 요청(OPTIONS)을 모든 경로에서 허용
-app.options('*', cors());
-
+app.options('(.*)', cors());
 app.use(express.json()); // JSON 요청 본문 파싱
 
 // MongoDB 연결
