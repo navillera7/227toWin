@@ -5,6 +5,7 @@ import LoginPage from './components/LoginPage';
 import Poll from './components/poll'; // 파일명이 poll.tsx이므로 소문자 확인
 import EmailVerification from './components/EmailVerification'; // 파일명이 poll.tsx이므로 소문자 확인
 import ResetPassword from './components/ResetPassword'; // 파일명이 poll.tsx이므로 소문자 확인
+import TownResults from './components/TownResults';
 
 function App() {    
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/poll" element={<Poll />} />
           <Route path="/verify-email/:token" element={<EmailVerification />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/town-results" element={<TownResults />} />
         
         </Routes>
       </BrowserRouter>

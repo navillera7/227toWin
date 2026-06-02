@@ -38,22 +38,52 @@ const PARTY_COLORS: { [key: string]: string } = {
   '조국혁신당': '#06275E',
   '진보당': '#8000FF',
   '무소속': '#888888',
-  '기타': '#94a3b8'
+  '기타': '#aaaaaa',
+  '없음': '#dddddd',
+  '그 외 후보': '#cccccc'
+};
+
+// 💡 1D 칼만 필터 평활화 함수 (추세선 계산)
+const applyKalmanSmoothing = (chartData: any[], Q = 0.05, R = 4.0) => {
+  const state: Record<string, { x: number, p: number }> = {};
+
+  return chartData.map(point => {
+    const newPoint = { ...point };
+    
+    // 객체에서 정당 지지율 데이터만 추출
+    const candidates = Object.keys(point).filter(key => 
+      typeof point[key] === 'number' && key !== 'poll_id' && key !== 'survey_date'
+    );
+
+    for (const cand of candidates) {
+      const measurement = point[cand];
+
+      if (!state[cand]) {
+        state[cand] = { x: measurement, p: 1.0 };
+        newPoint[`${cand}_trend`] = measurement;
+      } else {
+        let x_pred = state[cand].x;
+        let p_pred = state[cand].p + Q;
+
+        let K = p_pred / (p_pred + R);
+        state[cand].x = x_pred + K * (measurement - x_pred);
+        state[cand].p = (1 - K) * p_pred;
+
+        newPoint[`${cand}_trend`] = Number(state[cand].x.toFixed(1));
+      }
+    }
+    return newPoint;
+  });
 };
 
 // ------------------------------------------------------------------
-// 1. 추이 그래프 컴포넌트 (본선 양자/다자 대결 필터링 & 합산 로직)
+// 1. 추이 그래프 컴포넌트 (칼만 필터 및 다자대결 필터링)
 // ------------------------------------------------------------------
-interface RegionTrendChartProps {
-  data: PollData[];
-  targetRegion: string;
-  officialCandidates: string[];
-}
-
-const RegionTrendChart: React.FC<RegionTrendChartProps> = ({ data, targetRegion, officialCandidates }) => {
+const RegionTrendChart: React.FC<{ data: PollData[], targetRegion: string, officialCandidates: string[] }> = ({ data, targetRegion, officialCandidates }) => {
   const { trendData, candidates, partyMap } = useMemo(() => {
     const regionData = data.filter(poll => poll.region === targetRegion);
 
+    // 각 여론조사(poll_id)별 출마 후보 맵핑
     const pollCandidatesMap: { [key: string]: Set<string> } = {};
     regionData.forEach(poll => {
       if (!poll.poll_id) return;
@@ -70,11 +100,12 @@ const RegionTrendChart: React.FC<RegionTrendChartProps> = ({ data, targetRegion,
     regionData.forEach(poll => {
       if (!poll.poll_id) return;
 
+      // 💡 [필터링 1] 지정된 공식 후보들이 모두 포함된 여론조사만 통과
       if (officialCandidates && officialCandidates.length > 0) {
         const hasAllOfficial = officialCandidates.every(cand => 
           pollCandidatesMap[poll.poll_id].has(cand)
         );
-        if (!hasAllOfficial) return;
+        if (!hasAllOfficial) return; 
       }
 
       if (!dataByPoll[poll.poll_id]) {
@@ -86,31 +117,28 @@ const RegionTrendChart: React.FC<RegionTrendChartProps> = ({ data, targetRegion,
       }
       
       const rate = Number(poll.support_rate) || 0;
+      
+      // 💡 [필터링 2] 불필요한 항목 제거
+      const isMeaningless = poll.candidate_name === '없음' || poll.candidate_name === '기타' || poll.candidate_name === '모름/무응답' || poll.candidate_name === '잘 모름';
+      
+      // 💡 [필터링 3] 공식 후보만 메인 선으로, 나머지는 '그 외 후보'로 합산
       const isOfficial = officialCandidates.length === 0 || officialCandidates.includes(poll.candidate_name);
 
-      if (isOfficial) {
-        dataByPoll[poll.poll_id][poll.candidate_name] = rate;
-        candidateSet.add(poll.candidate_name);
-        partyMapping[poll.candidate_name] = poll.party;
-      } else {
-        const currentOthers = dataByPoll[poll.poll_id]['그 외 후보'] || 0;
-        dataByPoll[poll.poll_id]['그 외 후보'] = parseFloat((currentOthers + rate).toFixed(1));
+      if (!isMeaningless) {
+        if (isOfficial) {
+          dataByPoll[poll.poll_id][poll.candidate_name] = rate;
+          candidateSet.add(poll.candidate_name);
+          partyMapping[poll.candidate_name] = poll.party;
+        } else {
+          const currentOthers = dataByPoll[poll.poll_id]['그 외 후보'] || 0;
+          dataByPoll[poll.poll_id]['그 외 후보'] = currentOthers + rate;
+          candidateSet.add('그 외 후보');
+          partyMapping['그 외 후보'] = '무소속'; 
+        }
       }
     });
 
-    let hasOthers = false;
-    Object.values(dataByPoll).forEach(pollObj => {
-      if (pollObj['그 외 후보'] !== undefined) {
-        if (pollObj['그 외 후보'] > 0) hasOthers = true;
-        else delete pollObj['그 외 후보'];
-      }
-    });
-
-    if (hasOthers) {
-      candidateSet.add('그 외 후보');
-      partyMapping['그 외 후보'] = '기타';
-    }
-
+    // 날짜순 정렬
     const sortedTrendData = Object.values(dataByPoll).sort((a, b) => 
       (a.survey_date || '').localeCompare(b.survey_date || '')
     );
@@ -121,151 +149,160 @@ const RegionTrendChart: React.FC<RegionTrendChartProps> = ({ data, targetRegion,
       return 0;
     });
 
+    // 💡 정렬된 데이터에 칼만 필터 추세선 적용
+    const smoothedTrendData = applyKalmanSmoothing(sortedTrendData, 0.05, 4.0);
+
     return {
-      trendData: sortedTrendData,
+      trendData: smoothedTrendData,
       candidates: sortedCandidates,
       partyMap: partyMapping
     };
   }, [data, targetRegion, officialCandidates]);
 
-  if (trendData.length === 0) {
-    return (
-      <div className="p-8 text-center bg-white rounded-3xl border border-gray-100 text-gray-500 font-bold mb-8 shadow-sm">
-        주요 확정 후보들이 모두 포함된 본선 여론조사 추이 데이터가 아직 없습니다.
-      </div>
-    );
-  }
+  if (!trendData || trendData.length === 0) return (
+    <div className="flex items-center justify-center h-64 bg-gray-50 rounded-xl border border-gray-200">
+      <p className="text-gray-500 font-medium">해당 지역의 추이 데이터가 충분하지 않습니다.</p>
+    </div>
+  );
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mb-8">
-      <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-        <TrendingUp className="text-blue-600" />
-        {targetRegion} 지지율 추이 (본선 가상대결 기준)
-      </h2>
-      
+    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-200">
+      <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
+        <TrendingUp size={20} className="text-blue-500" />
+        {targetRegion} 지지율 추이 (추세선)
+      </h3>
       <div className="h-[400px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="survey_date" tick={{ fontSize: 12, fill: '#64748b', fontWeight: 'bold' }} tickMargin={10} />
-            <YAxis domain={[0, 'auto']} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 'bold' }} tickFormatter={(value) => `${value}%`} />
-            
-            <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              labelFormatter={(label, payload) => {
-                if (payload && payload.length > 0) {
-                  return `${label} (${payload[0].payload.surveyor})`;
-                }
-                return label;
-              }}
-              formatter={(value: any) => [`${value}%`]} 
-              labelStyle={{ fontWeight: '900', color: '#1e293b', marginBottom: '8px' }}
+          <LineChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="survey_date" 
+              tickFormatter={(val) => val ? val.substring(5) : ''}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              tickMargin={10}
+              axisLine={false}
+              tickLine={false}
             />
-            
-            <Legend wrapperStyle={{ paddingTop: '20px', fontWeight: 'bold', fontSize: '13px' }} />
+            <YAxis 
+              domain={[0, 100]} 
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              tickFormatter={(val) => `${val}%`}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              labelStyle={{ fontWeight: 'bold', color: '#374151', marginBottom: '8px' }}
+            />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
             {candidates.map((candidateName) => {
               const isOther = candidateName === '그 외 후보';
               const party = partyMap[candidateName];
               const color = PARTY_COLORS[party] || '#888888';
+              
               return (
-                <Line
-                  key={candidateName}
-                  type="monotone"
-                  dataKey={candidateName}
-                  name={isOther ? candidateName : `${candidateName} (${party})`}
-                  stroke={color}
-                  strokeWidth={isOther ? 3 : 4}
-                  strokeDasharray={isOther ? "5 5" : undefined}
-                  activeDot={{ r: 7, strokeWidth: 0 }}
-                  connectNulls={true}
-                />
+                <React.Fragment key={candidateName}>
+                  {/* 실제 조사 점 (투명도 부여) */}
+                  <Line
+                    type="linear"
+                    dataKey={candidateName}
+                    stroke={color}
+                    strokeWidth={0}
+                    opacity={0.25}
+                    dot={{ r: 3, fill: color, opacity: 0.5 }}
+                  />
+                  {/* 칼만 필터 추세선 (굵은 곡선) */}
+                  <Line
+                    type="monotone"
+                    dataKey={`${candidateName}_trend`}
+                    name={isOther ? candidateName : `${candidateName} (${party})`}
+                    stroke={color}
+                    strokeWidth={isOther ? 2 : 4}
+                    strokeDasharray={isOther ? "5 5" : undefined}
+                    dot={false}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    connectNulls={true}
+                  />
+                </React.Fragment>
               );
             })}
           </LineChart>
         </ResponsiveContainer>
       </div>
+      <p className="text-xs text-gray-400 mt-4 text-right">* 실선은 개별 여론조사의 노이즈를 제거한 칼만 필터 추세선입니다.</p>
     </div>
   );
 };
 
 // ------------------------------------------------------------------
-// 2. 개별 차트 카드 컴포넌트
+// 2. 여론조사 개별 카드 컴포넌트
 // ------------------------------------------------------------------
-const PollCard = React.memo(({ poll, onRegionClick }: { poll: GroupedPoll, onRegionClick: (region: string) => void }) => {
+const PollCard: React.FC<{ poll: GroupedPoll, onRegionClick: (region: string) => void }> = ({ poll, onRegionClick }) => {
+  const meta = poll.metadata;
+  
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 mb-8">
-      <div className="p-6 bg-slate-50 border-b border-gray-100">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <button 
-              onClick={() => onRegionClick(poll.metadata.region || '')}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-md mb-2 transition-colors shadow-sm"
-              title={`${poll.metadata.region} 추이 보기`}
+    <div className="bg-white border border-gray-200 rounded-3xl p-5 sm:p-6 mb-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span 
+              onClick={() => meta.region && onRegionClick(meta.region)}
+              className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full cursor-pointer hover:bg-blue-100 transition-colors"
             >
-              {poll.metadata.region} 📊
-            </button>
-            <h2 className="text-xl font-bold leading-tight mb-1">
-              {poll.metadata.surveyor} 조사
-            </h2>
-            <p className="text-xs text-gray-500 font-medium">의뢰: {poll.metadata.client}</p>
+              {meta.region}
+            </span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
+              {meta.survey_date}
+            </span>
           </div>
-          <div className="text-right text-gray-500 text-[11px] space-y-1 font-semibold bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-end gap-1.5"><Calendar size={12} className="text-blue-500"/> {poll.metadata.survey_date}</div>
-            <div className="flex items-center justify-end gap-1.5"><Users size={12} className="text-blue-500"/> N={poll.metadata.sample_size}</div>
-            <div className="flex items-center justify-end gap-1.5"><CheckCircle2 size={12} className="text-blue-500"/> {poll.metadata.method}</div>
-          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-800 leading-tight">
+            {meta.surveyor} <span className="text-gray-400 font-medium text-base">({meta.client})</span>
+          </h3>
         </div>
       </div>
 
-      <div className="px-6 py-6 h-[320px] w-full">
+      <div className="mb-6 h-[180px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={poll.candidates} layout="vertical" margin={{ left: 5, right: 45, top: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-            <XAxis type="number" hide domain={[0, 100]} />
-            <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fontWeight: 800, fill: '#334155' }} width={70} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{fill: '#f8fafc'}} content={({ active, payload }) => {
-              if (active && payload && payload.length) {
-                const data = payload[0].payload;
-                return (
-                  <div className="bg-slate-900 text-white px-3 py-2 rounded-xl shadow-xl text-xs font-bold border border-slate-700">
-                    {data.party} | {data.rate}%
-                  </div>
-                );
-              }
-              return null;
-            }} />
-            <Bar dataKey="rate" radius={[0, 8, 8, 0]} barSize={28} animationDuration={500}>
-              {poll.candidates.map((entry, idx) => (
-                <Cell key={`cell-${idx}`} fill={PARTY_COLORS[entry.party] || '#cbd5e1'} />
+          <BarChart data={poll.candidates} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+            <XAxis type="number" domain={[0, 100]} hide />
+            <YAxis 
+              dataKey="name" 
+              type="category" 
+              width={100} 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#4b5563', fontSize: 13, fontWeight: 600 }} 
+            />
+            <Tooltip 
+              cursor={{ fill: '#f9fafb' }}
+              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            />
+            <Bar dataKey="rate" radius={[0, 4, 4, 0]} barSize={24}>
+              {poll.candidates.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={PARTY_COLORS[entry.party] || '#d1d5db'} />
               ))}
-              <LabelList dataKey="rate" position="right" offset={10} fill="#1e293b" style={{ fontSize: '12px', fontWeight: '900' }} formatter={(v: any) => `${v}%`} />
+              <LabelList 
+                dataKey="rate" 
+                position="right" 
+                formatter={(val: any) => `${val}%`}
+                style={{ fill: '#374151', fontWeight: 'bold', fontSize: 13 }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 복구된 디테일 박스 (표본오차, Info 등) */}
-      <div className="px-6 py-4 bg-slate-50/80 border-t border-gray-100">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white p-3 rounded-xl border border-gray-100 text-center">
-            <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">표본오차</p>
-            <p className="text-sm font-black text-blue-600">{poll.metadata.margin_of_error}</p>
-            <p className="text-[9px] text-gray-400">({poll.metadata.confidence_level} 신뢰수준)</p>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-gray-100 text-center">
-            <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">가중치 부여</p>
-            <p className="text-[11px] font-bold text-gray-700 leading-tight">{poll.metadata.weighting}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2 text-[10px] text-gray-400 bg-white/50 p-2 rounded-lg border border-dashed border-gray-200">
-          <Info size={12} className="mt-0.5 shrink-0" />
-          <p className="leading-relaxed">자세한 사항은 중앙선거여론조사심의위원회 참조</p>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-500 bg-gray-50 p-4 rounded-2xl">
+        <div className="flex items-center gap-1.5"><Users size={14} className="text-gray-400" /><span>표본:</span> <strong className="text-gray-700">{meta.sample_size}</strong></div>
+        <div className="flex items-center gap-1.5"><Info size={14} className="text-gray-400" /><span>응답률:</span> <strong className="text-gray-700">{meta.response_rate}</strong></div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-gray-400" /><span>오차:</span> <strong className="text-gray-700">{meta.margin_of_error}</strong></div>
+        <div className="flex items-center gap-1.5"><Calendar size={14} className="text-gray-400" /><span>조사:</span> <strong className="text-gray-700 truncate" title={meta.method}>{meta.method}</strong></div>
       </div>
     </div>
   );
-});
+};
 
 // ------------------------------------------------------------------
 // 3. 메인 Poll 페이지 컴포넌트
@@ -273,194 +310,175 @@ const PollCard = React.memo(({ poll, onRegionClick }: { poll: GroupedPoll, onReg
 const Poll: React.FC = () => {
   const [polls, setPolls] = useState<GroupedPoll[]>([]);
   const [rawPolls, setRawPolls] = useState<PollData[]>([]);
-  const [officialCandidatesMap, setOfficialCandidatesMap] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
   const [selectedTrendRegion, setSelectedTrendRegion] = useState<string | null>(null);
-  const hotRegions = ["서울특별시", "경기도", "인천광역시", "담양군", "청양군"]; 
+  const [officialCandidatesMap, setOfficialCandidatesMap] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchData = async () => {
       try {
         const [candResponse, pollResponse] = await Promise.all([
-          fetch('/candidates.csv'),
-          fetch('/polls.csv')
+          fetch(`${import.meta.env.BASE_URL}candidates.csv`),
+          fetch(`${import.meta.env.BASE_URL}polls.csv`)
         ]);
 
         let candText = await candResponse.text();
         let pollText = await pollResponse.text();
 
-        // 💡 utf-8-sig로 인해 생성된 BOM(\ufeff) 찌꺼기 제거
-        if (pollText.charCodeAt(0) === 0xFEFF) {
-          pollText = pollText.slice(1);
-        }
-        if (candText.charCodeAt(0) === 0xFEFF) {
-          candText = candText.slice(1);
-        }
+        // 💡 BOM 문자 제거
+        if (candText.charCodeAt(0) === 0xFEFF) candText = candText.slice(1);
+        if (pollText.charCodeAt(0) === 0xFEFF) pollText = pollText.slice(1);
 
+        // 💡 1. candidates.csv 동적 파싱 (cand1_name, cand2_name 등 추출)
         Papa.parse(candText, {
           header: true,
-          dynamicTyping: true,
           skipEmptyLines: true,
           complete: (results) => {
-            const candMap: Record<string, string[]> = {};
+            const map: Record<string, string[]> = {};
+            
             results.data.forEach((row: any) => {
-              const region = row.region_name;
-              if (region) {
-                const cands: string[] = [];
-                Object.keys(row).forEach(key => {
-                  if (key.startsWith('cand') && key.endsWith('_name') && row[key]) {
-                    cands.push(row[key].toString().trim());
-                  }
-                });
-                candMap[region] = cands;
+              const region = row.region_name?.trim();
+              if (!region) return;
+
+              const cands: string[] = [];
+              // cand1_name ~ cand10_name 까지 유동적으로 탐색
+              for (let i = 1; i <= 10; i++) {
+                const candName = row[`cand${i}_name`]?.trim();
+                if (candName) cands.push(candName);
+              }
+
+              if (cands.length > 0) {
+                map[region] = cands;
               }
             });
-            setOfficialCandidatesMap(candMap);
+            
+            console.log("✅ 공식 후보 맵핑 완료:", map);
+            setOfficialCandidatesMap(map);
           }
         });
 
+        // 💡 2. polls.csv 파싱 및 그룹화
         Papa.parse(pollText, {
           header: true,
-          dynamicTyping: true,
           skipEmptyLines: true,
           complete: (results) => {
-            const rawData = results.data as PollData[];
-            setRawPolls(rawData); 
+            // id 컬럼과 poll_id 컬럼의 불일치 완벽 대응
+            const data = results.data.map((r: any) => ({
+              ...r,
+              poll_id: r.poll_id || r.id
+            })) as PollData[];
+            console.log("First row keys:", Object.keys(results.data[0] || {}));
+console.log("First row poll_id:", data[0]?.poll_id);
+console.log("Total rows:", data.length);
+            
+            setRawPolls(data);
 
-            const grouped = rawData.reduce((acc: { [key: string]: GroupedPoll }, curr) => {
+            const grouped = data.reduce((acc, curr) => {
               if (!curr.poll_id) return acc;
+              
               if (!acc[curr.poll_id]) {
-                acc[curr.poll_id] = { metadata: { ...curr }, candidates: [] };
+                acc[curr.poll_id] = {
+                  metadata: {
+                    poll_id: curr.poll_id,
+                    survey_date: curr.survey_date,
+                    surveyor: curr.surveyor,
+                    client: curr.client,
+                    method: curr.method,
+                    sample_size: curr.sample_size,
+                    region: curr.region,
+                    target: curr.target,
+                    response_rate: curr.response_rate,
+                    margin_of_error: curr.margin_of_error,
+                    confidence_level: curr.confidence_level,
+                    weighting: curr.weighting
+                  },
+                  candidates: []
+                };
               }
+              
               acc[curr.poll_id].candidates.push({
                 name: curr.candidate_name,
                 party: curr.party,
-                rate: Number(curr.support_rate) || 0 
+                rate: Number(curr.support_rate) || 0
               });
+              
               return acc;
-            }, {});
-            
-            const finalData = Object.values(grouped).map(poll => ({
+            }, {} as Record<string, GroupedPoll>);
+
+            // 지지율(rate) 기준으로 각 조사의 후보자 정렬
+            const groupedArray = Object.values(grouped).map(poll => ({
               ...poll,
               candidates: poll.candidates.sort((a, b) => b.rate - a.rate)
             }));
 
-            setPolls(finalData);
-            setLoading(false);
+            // 최신 날짜순 정렬
+            groupedArray.sort((a, b) => {
+              return (b.metadata.survey_date || '').localeCompare(a.metadata.survey_date || '');
+            });
+
+            setPolls(groupedArray);
           }
         });
       } catch (error) {
-        console.error("데이터 로드 에러:", error);
-        setLoading(false);
+        console.error("데이터 로딩 실패:", error);
       }
     };
-    
-    fetchAllData();
+
+    fetchData();
   }, []);
 
   const filteredPolls = useMemo(() => {
-    return polls
-      .filter(poll => 
-        poll.metadata.region?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        poll.metadata.surveyor?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .sort((a, b) => (b.metadata.survey_date || '').localeCompare(a.metadata.survey_date || ''));
+    return polls.filter(poll => 
+      poll.metadata.region?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      poll.metadata.surveyor?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [polls, searchTerm]);
 
-  // 존재하는 전체 지역 이름 추출 (드롭다운용)
-  const allRegions = Array.from(new Set(rawPolls.map(p => p.region))).filter(Boolean).sort();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 font-sans">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-gray-500 font-bold">여론조사 및 후보자 데이터 연동 중...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-screen bg-gray-50 flex flex-col font-sans text-gray-900 overflow-hidden">
-      <header className="w-full max-w-6xl mx-auto p-4 sm:p-8 shrink-0">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 mb-6 transition-colors group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 
-          지도 페이지로 돌아가기
-        </Link>
-        
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="flex-1">
-            <h1 className="text-3xl font-black mb-2">차기 선거 여론조사 현황</h1>
-            <p className="text-gray-500 text-sm">중앙선거여론조사심의위원회 등록 데이터</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-pretendard">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 py-4 sm:px-8">
+        <div className="max-w-[1700px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors">
+              <ArrowLeft size={20} />
+            </Link>
+            <h1 className="text-2xl font-black tracking-tight text-gray-800">
+              여론조사 종합분석 <span className="text-blue-600">추이</span>
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 max-w-[1000px] mx-auto w-full p-4 sm:p-8 flex flex-col">
+        <div className="mb-8 space-y-4">
+          <div className="relative w-full shadow-sm rounded-2xl overflow-hidden bg-white border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-11 pr-4 py-4 sm:text-lg text-gray-900 bg-transparent outline-none font-medium placeholder:font-normal placeholder:text-gray-400"
+              placeholder="지역명(예: 서울특별시) 또는 조사기관 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setSelectedTrendRegion(null)} 
+            />
           </div>
 
-          {!selectedTrendRegion && ( 
-            <div className="relative w-full md:w-80">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-                <Search size={18} />
-              </div>
-              <input 
-                type="text" 
-                placeholder="지역명 또는 조사기관 검색..." 
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-400 outline-none shadow-sm transition-all"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 pb-8 flex flex-col">
-        <div className="mb-6 p-4 bg-blue-50/70 rounded-2xl border border-blue-100 shrink-0">
-          <h2 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
-            <TrendingUp size={16} /> 지역별 추이 보기
-          </h2>
-          <div className="flex flex-wrap items-center gap-2">
-            {hotRegions.map(region => (
-              <button
-                key={region}
-                onClick={() => setSelectedTrendRegion(region)}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
-                  selectedTrendRegion === region 
-                  ? 'bg-blue-600 text-white border-transparent' 
-                  : 'bg-white border border-blue-200 text-blue-700 hover:bg-blue-100'
-                }`}
-              >
-                {region}
-              </button>
-            ))}
-            
-            <select
-              className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-              value={selectedTrendRegion || ""}
-              onChange={(e) => {
-                if (e.target.value) setSelectedTrendRegion(e.target.value);
-              }}
-            >
-              <option value="" disabled>➕ 기타 지역 선택...</option>
-              {allRegions
-                .filter(r => !hotRegions.includes(r))
-                .map(region => (
-                  <option key={region} value={region}>{region}</option>
-                ))
-              }
-            </select>
-
+          <div className="flex items-center gap-2">
             {selectedTrendRegion && (
-               <button 
-                 onClick={() => setSelectedTrendRegion(null)} 
-                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-300 ml-auto"
-               >
-                 목록으로 돌아가기
-               </button>
+              <button 
+                onClick={() => setSelectedTrendRegion(null)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-full transition-colors shadow-sm"
+              >
+                <ArrowLeft size={16} /> 전체 목록 보기
+              </button>
             )}
           </div>
         </div>
 
         {selectedTrendRegion ? (
-          <div className="flex-1 overflow-y-auto pb-8">
+          <div className="flex-1 overflow-y-auto pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <RegionTrendChart 
               data={rawPolls} 
               targetRegion={selectedTrendRegion} 
@@ -471,10 +489,9 @@ const Poll: React.FC = () => {
           <div className="flex-1 min-h-0">
             {filteredPolls.length > 0 ? (
               <Virtuoso
-                style={{ height: '100%' }}
+                style={{ height: 'calc(100vh - 200px)' }}
                 data={filteredPolls}
                 totalCount={filteredPolls.length}
-                // 경고 방지: 안 쓰는 index 대신 `_` 사용
                 itemContent={(_, poll) => ( 
                   <div className="px-1">
                     <PollCard poll={poll} onRegionClick={(region) => setSelectedTrendRegion(region)} />

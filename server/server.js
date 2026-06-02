@@ -43,10 +43,10 @@ mongoose.connect(process.env.MONGO_URI)
 // 라우터 등록
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/predictions');
-
+const scrapeRoutes = require('./routes/scrape'); // ✨ 새로 추가한 부분
 app.use('/api/auth', authRoutes);
 app.use('/api/predict', predictionRoutes);
-
+app.use('/api/scrape', scrapeRoutes); // ✨ 새로 추가한 부분
 // 기본 경로 확인
 app.get('/', (req, res) => {
   res.send('Election Predictor API Server is running...');

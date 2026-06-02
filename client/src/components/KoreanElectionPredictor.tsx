@@ -5,9 +5,9 @@ import L from 'leaflet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import { toBlob } from 'html-to-image';
-import { Github, Mail, MapPin, TrendingUp } from 'lucide-react';
+import {Mail, MapPin, TrendingUp } from 'lucide-react';
 import Papa from 'papaparse'; // CSV 파싱용
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -610,6 +610,7 @@ const KoreanElectionPredictor: React.FC = () => {
             </div>
           </div>
         )}
+        
       </div>
     );
   };
@@ -622,6 +623,9 @@ const KoreanElectionPredictor: React.FC = () => {
         <header className="h-16 sm:h-20 bg-white flex items-center justify-between px-4 sm:px-8 border-b border-gray-200 z-[3000] shadow-sm">
           <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tighter">227toWin</h1>
           <div className="flex items-center gap-2 sm:gap-3">
+          <Link to="/town-results" className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-indigo-50 text-indigo-700 rounded-lg font-bold text-[11px] sm:text-sm shadow-sm hover:bg-indigo-100 transition-all hover:-translate-y-0.5 border border-indigo-100">
+              📊 <span className="hidden sm:inline">읍면동 개표결과</span><span className="sm:hidden">읍면동</span>
+            </Link>
             <a href="https://www.buymeacoffee.com/227towin" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#FFDD00] text-black rounded-lg font-bold text-[11px] sm:text-sm shadow-sm hover:bg-[#FFEA4C] transition-all hover:-translate-y-0.5">
               ☕ <span className="hidden sm:inline">커피 후원</span><span className="sm:hidden">후원</span>
             </a>
