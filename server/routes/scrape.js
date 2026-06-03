@@ -3,6 +3,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const router = express.Router();
 
+router.get('/test', (req, res) => {
+  res.send('크롤링 라우터가 정상적으로 연결되었습니다!');
+});
 router.get('/towns', async (req, res) => {
   try {
     const url = 'http://info.nec.go.kr/electioninfo/electionInfo_report.xhtml';
