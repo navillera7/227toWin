@@ -169,16 +169,16 @@ const TownResults: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F0F2F5] flex flex-col font-sans">
       <header className="h-16 sm:h-20 bg-white flex items-center justify-between px-4 sm:px-8 border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tighter">
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tighter">
           종합 개표 상황실
         </h1>
         <div className="flex gap-3">
           <button 
             onClick={fetchAllResults}
             disabled={isLoading || regions.length === 0}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs sm:text-sm hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
           >
-            {isLoading ? '불러오는 중...' : '↻ 실시간 업데이트'}
+            {isLoading ? '로딩 중...' : '↻ 업데이트'}
           </button>
           <Link 
             to="/" 
@@ -189,136 +189,136 @@ const TownResults: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 lg:p-8">
+      {/* ✨ max-w를 조금 더 넓혀서 4개가 충분히 들어갈 수 있게 조정했습니다 */}
+      <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 lg:p-6">
         {isLoading && dashboardData.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400 space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
-            <p className="font-bold text-lg">전국 상황실 데이터를 동기화 중입니다...</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-indigo-600"></div>
+            <p className="font-bold text-sm sm:text-base">전국 상황실 데이터를 동기화 중입니다...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+          /* ✨ grid-cols-4로 한 줄에 4개씩 들어가도록 조정하고 갭을 줄였습니다. */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
             {dashboardData.map((item) => (
-              <div key={item.id} className="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-gray-100 p-6 sm:p-10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+              /* ✨ 패딩과 둥근 모서리를 약간 줄여서 콤팩트하게 만들었습니다. */
+              <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 hover:shadow-md transition-shadow">
                 
-                {/* ✨ 현재 데이터(2026) 또는 과거 데이터(2018) 둘 중 하나라도 있으면 렌더링 */}
                 {item.currentData || item.pastData ? (
-                  <div className="flex flex-col gap-8">
+                  <div className="flex flex-col gap-5">
                     
                     {/* 공통 타이틀 영역 */}
                     <div className="flex flex-col items-center text-center gap-1">
-                      <span className="text-sm font-black text-gray-400 tracking-widest uppercase mb-1">
+                      <span className="text-[11px] font-black text-gray-400 tracking-widest uppercase mb-0.5">
                         {item.metroName} {item.localName}
                       </span>
-                      <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-                        {item.targetTown} <span className="text-gray-400 font-bold text-2xl">개표 현황</span>
+                      <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                        {item.targetTown} <span className="text-gray-400 font-bold text-lg">개표</span>
                       </h2>
-                      {/* 현재 선거 데이터가 있을 때만 개표율/투표율 뱃지 표시 */}
                       {item.currentData && item.countingRate !== null && (
-                        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full mt-2">
+                        <div className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full mt-1">
                           {item.countingRate < 100 && item.countingRate > 0 && (
-                            <span className="relative flex h-2.5 w-2.5">
+                            <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                             </span>
                           )}
-                          <span className="text-base font-extrabold text-gray-800 tracking-wider">개표율 {item.countingRate}%</span>
-                          <span className="text-gray-400 font-bold text-xs ml-2 border-l border-gray-300 pl-3">투표율 {item.currentData.turnout}%</span>
+                          <span className="text-sm font-extrabold text-gray-800">개표율 {item.countingRate}%</span>
+                          <span className="text-gray-400 font-bold text-[11px] ml-1 border-l border-gray-300 pl-2">투표율 {item.currentData.turnout}%</span>
                         </div>
                       )}
                     </div>
 
                     {/* ✨ 2026년 데이터 구역 */}
                     {item.currentData ? (
-                      <div className="flex flex-col gap-6">
-                        {/* 막대 그래프 */}
-                        <div className="relative w-full h-14 sm:h-16 bg-gray-100 rounded-2xl overflow-hidden flex shadow-inner border border-gray-200">
-                          <div style={{ width: `${item.currentData.cand1Rate}%` }} className="bg-[#0073EF] h-full transition-all duration-1000 flex items-center px-4 relative group">
-                            <span className="text-white font-black text-lg sm:text-xl drop-shadow-md z-10">{item.currentData.cand1Rate}%</span>
+                      <div className="flex flex-col gap-4">
+                        {/* 콤팩트 막대 그래프 */}
+                        <div className="relative w-full h-8 sm:h-10 bg-gray-100 rounded-xl overflow-hidden flex shadow-inner border border-gray-200">
+                          <div style={{ width: `${item.currentData.cand1Rate}%` }} className="bg-[#0073EF] h-full transition-all duration-1000 flex items-center px-3 relative group">
+                            <span className="text-white font-black text-sm drop-shadow-md z-10">{item.currentData.cand1Rate}%</span>
                           </div>
                           <div style={{ width: `${Math.max(0, 100 - item.currentData.cand1Rate - item.currentData.cand2Rate)}%` }} className="bg-gray-200 h-full"></div>
-                          <div style={{ width: `${item.currentData.cand2Rate}%` }} className="bg-[#E61E2B] h-full transition-all duration-1000 flex items-center justify-end px-4 relative group">
-                            <span className="text-white font-black text-lg sm:text-xl drop-shadow-md z-10">{item.currentData.cand2Rate}%</span>
+                          <div style={{ width: `${item.currentData.cand2Rate}%` }} className="bg-[#E61E2B] h-full transition-all duration-1000 flex items-center justify-end px-3 relative group">
+                            <span className="text-white font-black text-sm drop-shadow-md z-10">{item.currentData.cand2Rate}%</span>
                           </div>
-                          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] z-20 -translate-x-1/2"></div>
+                          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white shadow-sm z-20 -translate-x-1/2"></div>
                         </div>
 
-                        {/* 후보자 상세 스탯 */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex flex-col items-start bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
-                            <span className="text-2xl font-black text-gray-900 mb-4">{item.currentData.cand1Name}</span>
+                        {/* 후보자 상세 스탯 콤팩트 버전 */}
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <div className="flex flex-col items-start bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                            <span className="text-base sm:text-lg font-black text-gray-900 mb-2 truncate w-full">{item.currentData.cand1Name}</span>
                             <div className="w-full flex justify-between items-baseline border-b border-blue-100 pb-1 mb-1">
-                              <span className="text-gray-500 font-bold text-sm">득표율</span>
-                              <span className="text-xl font-black text-[#0073EF]">{item.currentData.cand1Rate}%</span>
+                              <span className="text-gray-500 font-bold text-xs">득표율</span>
+                              <span className="text-base font-black text-[#0073EF]">{item.currentData.cand1Rate}%</span>
                             </div>
                             <div className="w-full flex justify-between items-baseline">
-                              <span className="text-gray-500 font-bold text-sm">득표수</span>
-                              <span className="text-lg font-bold text-gray-800">{item.currentData.cand1Vote.toLocaleString()}</span>
+                              <span className="text-gray-500 font-bold text-xs">득표수</span>
+                              <span className="text-sm font-bold text-gray-800">{item.currentData.cand1Vote.toLocaleString()}</span>
                             </div>
                           </div>
 
-                          <div className="flex flex-col items-end text-right bg-red-50/50 p-5 rounded-2xl border border-red-100">
-                            <span className="text-2xl font-black text-gray-900 mb-4">{item.currentData.cand2Name}</span>
+                          <div className="flex flex-col items-end text-right bg-red-50/50 p-3 rounded-xl border border-red-100">
+                            <span className="text-base sm:text-lg font-black text-gray-900 mb-2 truncate w-full">{item.currentData.cand2Name}</span>
                             <div className="w-full flex justify-between items-baseline border-b border-red-100 pb-1 mb-1">
-                              <span className="text-gray-500 font-bold text-sm">득표율</span>
-                              <span className="text-xl font-black text-[#E61E2B]">{item.currentData.cand2Rate}%</span>
+                              <span className="text-gray-500 font-bold text-xs">득표율</span>
+                              <span className="text-base font-black text-[#E61E2B]">{item.currentData.cand2Rate}%</span>
                             </div>
                             <div className="w-full flex justify-between items-baseline">
-                              <span className="text-gray-500 font-bold text-sm">득표수</span>
-                              <span className="text-lg font-bold text-gray-800">{item.currentData.cand2Vote.toLocaleString()}</span>
+                              <span className="text-gray-500 font-bold text-xs">득표수</span>
+                              <span className="text-sm font-bold text-gray-800">{item.currentData.cand2Vote.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      // 2026년 데이터가 없을 때의 UI
-                      <div className="flex flex-col items-center justify-center py-10 bg-gray-50/50 rounded-2xl border border-dashed border-gray-300">
-                        <p className="text-gray-500 font-bold text-lg">2026년 선거 결과가 아직 집계되지 않았습니다.</p>
+                      <div className="flex flex-col items-center justify-center py-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-300">
+                        <p className="text-gray-400 font-bold text-sm">2026년 결과 미집계</p>
                       </div>
                     )}
 
-                    {/* 2018년 과거 선거 결과 구역 */}
-                    <div className="mt-2 p-5 bg-gray-50 rounded-2xl border border-gray-200 shadow-sm">
-                      <h3 className="text-sm font-bold text-gray-500 mb-3 flex items-center gap-2">
-                        🕒 2018년 제7대 지선 결과
+                    {/* 2018년 과거 선거 결과 콤팩트 버전 */}
+                    <div className="mt-0 p-3 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
+                      <h3 className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1.5">
+                        🕒 2018년 결과
                         {item.pastData && (
-                          <span className="text-xs font-medium text-gray-400 font-normal">
+                          <span className="text-[10px] font-medium text-gray-400 font-normal">
                             (투표율: {item.pastData.turnout}%)
                           </span>
                         )}
                       </h3>
                       
                       {item.pastData ? (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 w-1/3">
-                            <span className="font-bold text-gray-800">{item.pastData.cand1Name}</span>
-                            <span className="text-blue-600 font-black text-lg">{item.pastData.cand1Rate}%</span>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 w-[35%]">
+                            <span className="font-bold text-gray-800 truncate">{item.pastData.cand1Name}</span>
+                            <span className="text-blue-600 font-black">{item.pastData.cand1Rate}%</span>
                           </div>
                           
-                          <div className="w-1/3 px-4">
-                            <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden flex">
+                          <div className="w-[30%] px-2">
+                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
                               <div style={{ width: `${item.pastData.cand1Rate}%` }} className="bg-blue-400 h-full"></div>
                               <div style={{ width: `${item.pastData.cand2Rate}%` }} className="bg-red-400 h-full ml-auto"></div>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-end gap-3 w-1/3">
-                            <span className="text-red-600 font-black text-lg">{item.pastData.cand2Rate}%</span>
-                            <span className="font-bold text-gray-800">{item.pastData.cand2Name}</span>
+                          <div className="flex items-center justify-end gap-2 w-[35%]">
+                            <span className="text-red-600 font-black">{item.pastData.cand2Rate}%</span>
+                            <span className="font-bold text-gray-800 truncate">{item.pastData.cand2Name}</span>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center text-sm font-medium text-gray-400 py-2">
-                          해당 지역의 과거 선거 데이터가 없습니다.
+                        <div className="flex items-center justify-center text-xs font-medium text-gray-400 py-1">
+                          과거 데이터 없음
                         </div>
                       )}
                     </div>
 
                   </div>
                 ) : (
-                  // 현재, 과거 데이터 둘 다 없을 때의 기존 Fallback UI
-                  <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-400">
-                    <p className="font-bold text-lg">{item.metroName} {item.localName} {item.targetTown} 데이터 없음</p>
-                    <p className="text-sm mt-2">선거가 진행되지 않았거나 파라미터가 다릅니다.</p>
+                  <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-gray-400">
+                    <p className="font-bold text-sm">{item.metroName} {item.localName}</p>
+                    <p className="font-bold text-base mb-1">{item.targetTown}</p>
+                    <p className="text-xs">데이터 없음</p>
                   </div>
                 )}
               </div>
