@@ -8,19 +8,16 @@ const cors = require('cors');
 const app = express();
 
 const allowedOrigins = [
-       // www 없는 버전도 안전하게 추가
   'http://localhost:5173',
   'https://227towin.com'         
 ];
 
-// 2. CORS 미들웨어 설정 (오타 수정 완료)
+// CORS 미들웨어 설정
 app.use(cors({
   origin: function (origin, callback) {
-    // origin이 없거나 allowedOrigins에 포함된 경우 허용
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      // 보안을 위해 로그에 차단된 origin을 출력하면 디버깅이 쉽습니다.
       console.log("Blocked by CORS:", origin);
       callback(new Error('CORS 정책에 의해 차단된 도메인입니다.'));
     }
@@ -43,22 +40,24 @@ mongoose.connect(process.env.MONGO_URI)
 // 라우터 등록
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/predictions');
-const scrapeRouter = require('./scrape'); // 파일 이름이나 경로는 상황에 맞게 맞춰주세요app.use('/api/auth', authRoutes);
+const scrapeRouter = require('./scrape'); // 정상적으로 scrapeRouter 선언
 
+app.use('/api/auth', authRoutes);
 app.use('/api/predict', predictionRoutes);
-app.use('/api/scrape', scrapeRoutes); // ✨ 새로 추가한 부분
+
+// 💡 수정 1: 위에 선언한 이름과 똑같이 scrapeRouter로 연결!
+app.use('/api/scrape', scrapeRouter); 
+
 // 기본 경로 확인
 app.get('/', (req, res) => {
   res.send('Election Predictor API Server is running...');
 });
 
-// 서버 실행
+// 💡 수정 2: Render가 찔러주는 동적 PORT를 받아 무조건 서버를 실행하도록 조건문 제거
 const PORT = process.env.PORT || 5000;
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(5000, () => {
-    console.log('🚀 서버가 포트 5000에서 실행 중입니다.');
-  });
-}
+app.listen(PORT, () => {
+  console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+});
 
-// Vercel이 백엔드를 인식할 수 있도록 반드시 추가해야 하는 한 줄!
+// Vercel이 백엔드를 인식할 수 있도록 반드시 추가해야 하는 한 줄! (그대로 둠)
 module.exports = app;
