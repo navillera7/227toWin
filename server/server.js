@@ -43,8 +43,8 @@ mongoose.connect(process.env.MONGO_URI)
 // 라우터 등록
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/predictions');
-const scrapeRoutes = require('./routes/scrape'); // ✨ 새로 추가한 부분
-app.use('/api/auth', authRoutes);
+const scrapeRouter = require('./scrape'); // 파일 이름이나 경로는 상황에 맞게 맞춰주세요app.use('/api/auth', authRoutes);
+
 app.use('/api/predict', predictionRoutes);
 app.use('/api/scrape', scrapeRoutes); // ✨ 새로 추가한 부분
 // 기본 경로 확인
