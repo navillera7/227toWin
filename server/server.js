@@ -40,7 +40,7 @@ mongoose.connect(process.env.MONGO_URI)
 // 라우터 등록
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/predictions');
-const scrapeRouter = require('./scrape'); // 정상적으로 scrapeRouter 선언
+const scrapeRouter = require('./routes/scrape'); // 정상적으로 scrapeRouter 선언
 
 app.use('/api/auth', authRoutes);
 app.use('/api/predict', predictionRoutes);
